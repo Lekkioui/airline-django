@@ -18,5 +18,14 @@
     "model": "flights.passenger",
     "pk": 1,
     "fields": { "first": "Harry", "last": "Potter", "flights": [] }
+  },
+  {
+  "model": "flights.passenger",
+  "pk": 2,
+  "fields": {
+    "first": "Hermione",
+    "last": "Granger",
+    "flights": []
   }
+}
 ]
