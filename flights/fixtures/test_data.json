@@ -20,12 +20,48 @@
     "fields": { "first": "Harry", "last": "Potter", "flights": [] }
   },
   {
-  "model": "flights.passenger",
-  "pk": 2,
-  "fields": {
-    "first": "Hermione",
-    "last": "Granger",
-    "flights": []
+    "model": "flights.passenger",
+    "pk": 2,
+    "fields": { "first": "Hermione", "last": "Granger", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 3,
+    "fields": { "first": "Ron", "last": "Weasley", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 4,
+    "fields": { "first": "Albus", "last": "Dumbledore", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 5,
+    "fields": { "first": "Severus", "last": "Snape", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 6,
+    "fields": { "first": "Draco", "last": "Malfoy", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 7,
+    "fields": { "first": "Luna", "last": "Lovegood", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 8,
+    "fields": { "first": "Neville", "last": "Longbottom", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 9,
+    "fields": { "first": "Ginny", "last": "Weasley", "flights": [] }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 10,
+    "fields": { "first": "Sirius", "last": "Black", "flights": [] }
   }
-}
 ]
