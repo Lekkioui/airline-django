@@ -1,0 +1,22 @@
+[
+  {
+    "model": "flights.airport",
+    "pk": 1,
+    "fields": { "code": "JFK", "city": "New York City" }
+  },
+  {
+    "model": "flights.airport",
+    "pk": 2,
+    "fields": { "code": "LHR", "city": "London" }
+  },
+  {
+    "model": "flights.flight",
+    "pk": 1,
+    "fields": { "origin": 1, "destination": 2, "duration": 415 }
+  },
+  {
+    "model": "flights.passenger",
+    "pk": 1,
+    "fields": { "first": "Harry", "last": "Potter", "flights": [] }
+  }
+]
