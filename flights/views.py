@@ -9,14 +9,14 @@ def index(request):
         'flights':Flight.objects.all()
     })
 
-def flight(request , flight_id):
-    flight = Flight.objects.get(id = flight_id)
+def flight(request, flight_id):
+    flight = Flight.objects.get(id=flight_id)
     passengers = flight.passengers.all()
-    non_passengers = Passenger.objects.exclude(flights = flight).all
-    return render(request,'flights/flight.html',{
+    non_passengers = Passenger.objects.exclude(flights=flight).all()  # ajout des ()
+    return render(request, 'flights/flight.html', {
         'flight': flight,
-        'passengers' : passengers,
-        'non_passengers' : non_passengers
+        'passengers': passengers,
+        'non_passengers': non_passengers
     })
 
 def book(request, flight_id):

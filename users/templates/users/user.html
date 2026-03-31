@@ -1,10 +1,106 @@
 {% extends 'users/layout.html' %}
-
+ 
 {% block body %}
-<h1>Welcome , {{request.user.first_name}} </h1>
-<ul>
-    <li>username: {{request.user.username}} </li>
-    <li>email: {{request.user.email}} </li>
+ 
+<style>
+    .welcome-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent);
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+ 
+    .welcome-name {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 28px;
+        line-height: 1.1;
+    }
+ 
+    .divider {
+        height: 1px;
+        background: var(--border);
+        margin-bottom: 24px;
+    }
+ 
+    .info-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: 32px;
+    }
+ 
+    .info-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        transition: border-color 0.2s;
+    }
+ 
+    .info-item:hover {
+        border-color: rgba(255,255,255,0.12);
+    }
+ 
+    .info-key {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+ 
+    .info-value {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text);
+    }
+ 
+    .btn-logout {
+        display: block;
+        text-align: center;
+        padding: 13px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-muted);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.85rem;
+        text-decoration: none;
+        letter-spacing: 0.05em;
+        transition: border-color 0.2s, color 0.2s;
+    }
+ 
+    .btn-logout:hover {
+        border-color: #e05555;
+        color: #e05555;
+    }
+</style>
+ 
+<p class="welcome-label">Logged in</p>
+<h1 class="welcome-name">Hello, {{request.user.first_name}} 👋</h1>
+ 
+<div class="divider"></div>
+ 
+<ul class="info-list">
+    <li class="info-item">
+        <span class="info-key">Username</span>
+        <span class="info-value">{{request.user.username}}</span>
+    </li>
+    <li class="info-item">
+        <span class="info-key">Email</span>
+        <span class="info-value">{{request.user.email}}</span>
+    </li>
 </ul>
-<a href="{%url 'logout'%}">Logout</a>
+ 
+<a href="{% url 'logout' %}" class="btn-logout">Sign out</a>
+ 
 {% endblock body %}

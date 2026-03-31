@@ -2,18 +2,41 @@
 
 {% block body %}
 
-    <h1>Flights</h1>
-    
-    
-    <ul>
-        {%for flights in flights%}
-        <li>
-            <a href={%url 'flight' flights.id %}>
-            {{flights.id}}: {{flights.origin}} to {{flights.destination}} 
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
-    
+<style>
+    .flight-item:nth-child(1)  { animation-delay: 0ms; }
+    .flight-item:nth-child(2)  { animation-delay: 80ms; }
+    .flight-item:nth-child(3)  { animation-delay: 160ms; }
+    .flight-item:nth-child(4)  { animation-delay: 240ms; }
+    .flight-item:nth-child(5)  { animation-delay: 320ms; }
+    .flight-item:nth-child(6)  { animation-delay: 400ms; }
+    .flight-item:nth-child(7)  { animation-delay: 480ms; }
+    .flight-item:nth-child(8)  { animation-delay: 560ms; }
+    .flight-item:nth-child(9)  { animation-delay: 640ms; }
+    .flight-item:nth-child(10) { animation-delay: 720ms; }
+</style>
+
+<h1 class="page-title" id="page-title-flights" data-testid="page-title-flights">Flights</h1>
+<p class="page-subtitle">Live departure board — all routes</p>
+
+<ul class="flight-list" data-testid="flight-list" aria-label="All flights">
+    {% for flight in flights %}
+    <li class="flight-item" data-testid="flight-item" data-flight-id="{{ flight.id }}">
+        <a href="{% url 'flight' flight.id %}"
+           class="flight-link"
+           id="flight-link-{{ flight.id }}"
+           data-testid="flight-link"
+           data-test="flight-details-link"
+           aria-label="Flight {{ flight.id }}: {{ flight.origin }} to {{ flight.destination }}">
+            <span class="flight-num">FL{{ flight.id }}</span>
+            <span class="flight-route">
+                {{ flight.origin }}
+                <span class="arrow">──✈──</span>
+                {{ flight.destination }}
+            </span>
+            <span class="flight-arrow-icon">Details →</span>
+        </a>
+    </li>
+    {% endfor %}
+</ul>
 
 {% endblock %}

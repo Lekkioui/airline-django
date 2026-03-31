@@ -1,40 +1,55 @@
-{%extends "flights/layout.html"%}
+{% extends "flights/layout.html" %}
 
-{%block body%}
+{% block body %}
 
-    <h1>Flight {{flight.id}} </h1>
-    <ul>
-        <li>Origin : {{flight.origin}} </li>
-        <li>Destination : {{flight.destination}} </li>
-        <li>Duration : {{flight.duration}} </li>
-    </ul>
-    <a href={%url 'index'%}>All Flights</a>
+<a href="{% url 'index' %}" class="back-link" id="back-to-flights" data-testid="back-to-flights">All Flights</a>
 
-    <h2>Passengers:</h2>
-    {%for passenger in passengers%}
-        <li>
-            {{passenger}}
-        </li>
-    {%empty%}
-    <li>No Passengers.</li>
-    {%endfor%}
+<span class="flight-badge" data-testid="flight-badge">FLIGHT {{ flight.id }}</span>
+<h1 class="page-title" id="flight-header" data-testid="flight-header">{{ flight.origin }} → {{ flight.destination }}</h1>
+<p class="page-subtitle">Flight details & passenger manifest</p>
 
-    <h2>Add passenger:</h2>
+<div class="detail-grid" data-testid="flight-detail-grid">
+    <div class="detail-cell">
+        <div class="detail-label">Origin</div>
+        <div class="detail-value" id="detail-origin" data-testid="detail-origin">{{ flight.origin }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Destination</div>
+        <div class="detail-value" id="detail-destination" data-testid="detail-destination">{{ flight.destination }}</div>
+    </div>
+    <div class="detail-cell" style="grid-column: 1 / -1;">
+        <div class="detail-label">Duration</div>
+        <div class="detail-value" id="detail-duration" data-testid="detail-duration">
+            {{ flight.duration }}
+            <span style="font-size:1rem; font-family:'IBM Plex Sans',sans-serif; color:var(--ink-muted); font-weight:300;">min</span>
+        </div>
+    </div>
+</div>
 
-<form action="{% url 'book' flight.id %}" method="post">
-    {%csrf_token%}
-    <select name="passenger" id="">
-        {%for passenger in non_passengers %}
-            <option value="{{passenger.id}}">
-                {{passenger}}
-            </option>
-        {%endfor%}
-        
-        <input type="submit">
+<p class="section-heading">Passengers</p>
 
-    </select>
-    
+{% if passengers %}
+<ul class="passenger-list" id="passenger-list" data-testid="passenger-list" aria-label="Passenger manifest">
+    {% for passenger in passengers %}
+    <li class="passenger-item" data-testid="passenger-item" data-passenger-id="{{ passenger.id }}">{{ passenger }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state" id="no-passengers" data-testid="no-passengers">No passengers on this flight yet.</div>
+{% endif %}
+
+<p class="section-heading">Add Passenger</p>
+
+<form action="{% url 'book' flight.id %}" method="post" data-testid="booking-form">
+    {% csrf_token %}
+    <div class="booking-form">
+        <select class="form-select" name="passenger" id="passenger-select" data-testid="passenger-select" aria-label="Select passenger to book">
+            {% for passenger in non_passengers %}
+            <option value="{{ passenger.id }}" data-testid="passenger-option">{{ passenger }}</option>
+            {% endfor %}
+        </select>
+        <input class="btn-book" type="submit" id="btn-book-submit" data-testid="btn-book-submit" value="Book →">
+    </div>
 </form>
 
-
-{%endblock%}
+{% endblock %}
