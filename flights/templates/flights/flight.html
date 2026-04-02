@@ -17,11 +17,21 @@
         <div class="detail-label">Destination</div>
         <div class="detail-value" id="detail-destination" data-testid="detail-destination">{{ flight.destination }}</div>
     </div>
-    <div class="detail-cell" style="grid-column: 1 / -1;">
+    <div class="detail-cell">
         <div class="detail-label">Duration</div>
         <div class="detail-value" id="detail-duration" data-testid="detail-duration">
-            {{ flight.duration }}
-            <span style="font-size:1rem; font-family:'IBM Plex Sans',sans-serif; color:var(--ink-muted); font-weight:300;">min</span>
+            {{ flight.duration }}<span style="font-size:1rem;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-muted);font-weight:300;"> min</span>
+        </div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Status</div>
+        <div class="detail-value" id="detail-status" data-testid="detail-status" data-status="{{ flight.status }}">{{ flight.status }}</div>
+    </div>
+    <div class="detail-cell" style="grid-column: 1 / -1;">
+        <div class="detail-label">Capacity</div>
+        <div class="detail-value" id="detail-capacity" data-testid="detail-capacity">
+            <span id="passenger-count" data-testid="passenger-count">{{ passengers.count }}</span>
+            <span style="font-size:1rem;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-muted);font-weight:300;"> / {{ flight.capacity }} seats</span>
         </div>
     </div>
 </div>
@@ -29,9 +39,30 @@
 <p class="section-heading">Passengers</p>
 
 {% if passengers %}
-<ul class="passenger-list" id="passenger-list" data-testid="passenger-list" aria-label="Passenger manifest">
+<ul class="passenger-list" id="passenger-list" data-testid="passenger-list">
     {% for passenger in passengers %}
-    <li class="passenger-item" data-testid="passenger-item" data-passenger-id="{{ passenger.id }}">{{ passenger }}</li>
+    <li class="passenger-item" data-testid="passenger-item" data-passenger-id="{{ passenger.id }}">
+        <div style="display:flex; flex-direction:column; gap:2px; flex:1;">
+            <span class="passenger-name" data-testid="passenger-name">{{ passenger }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted); letter-spacing:0.08em;">
+                <span data-testid="passenger-seat">{{ passenger.seat_number }}</span>
+                · <span data-testid="passenger-class">{{ passenger.seat_class }}</span>
+                · <span data-testid="passenger-passport">{{ passenger.passport_number }}</span>
+                · <span data-testid="passenger-email">{{ passenger.email }}</span>
+            </span>
+        </div>
+        <form action="{% url 'remove' flight.id passenger.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit"
+                    class="btn-remove"
+                    id="btn-remove-{{ passenger.id }}"
+                    data-testid="btn-remove"
+                    data-passenger-id="{{ passenger.id }}"
+                    aria-label="Remove {{ passenger }} from flight">
+                Remove
+            </button>
+        </form>
+    </li>
     {% endfor %}
 </ul>
 {% else %}
@@ -40,16 +71,100 @@
 
 <p class="section-heading">Add Passenger</p>
 
-<form action="{% url 'book' flight.id %}" method="post" data-testid="booking-form">
-    {% csrf_token %}
-    <div class="booking-form">
-        <select class="form-select" name="passenger" id="passenger-select" data-testid="passenger-select" aria-label="Select passenger to book">
-            {% for passenger in non_passengers %}
-            <option value="{{ passenger.id }}" data-testid="passenger-option">{{ passenger }}</option>
-            {% endfor %}
-        </select>
-        <input class="btn-book" type="submit" id="btn-book-submit" data-testid="btn-book-submit" value="Book →">
+{% if flight.is_bookable %}
+<button class="btn-add-passenger"
+        id="btn-open-add-passenger"
+        data-testid="btn-open-add-passenger"
+        onclick="openModal()"
+        type="button">
+    + Add Passenger
+</button>
+{% else %}
+<div class="empty-state" id="booking-disabled" data-testid="booking-disabled">
+    Booking unavailable — Flight is <strong>{{ flight.status }}</strong>{% if flight.is_full %} and at full capacity{% endif %}.
+</div>
+{% endif %}
+
+<!-- Modal -->
+<div class="modal-overlay {% if open_modal %}open{% endif %}"
+     id="modal-add-passenger"
+     data-testid="modal-add-passenger"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modal-title">
+    <div class="modal">
+        <div class="modal-title" id="modal-title">New Passenger</div>
+
+        {% if error %}
+        <div class="error-state" id="booking-error" data-testid="booking-error" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <form action="{% url 'book' flight.id %}" method="post"
+              id="add-passenger-form" data-testid="add-passenger-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="input-first">First Name</label>
+                <input class="form-input"
+                       type="text" id="input-first" name="first"
+                       data-testid="input-first"
+                       value="{{ form_data.first|default:'' }}"
+                       placeholder="Harry" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="input-last">Last Name</label>
+                <input class="form-input"
+                       type="text" id="input-last" name="last"
+                       data-testid="input-last"
+                       value="{{ form_data.last|default:'' }}"
+                       placeholder="Potter" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="input-email">Email</label>
+                <input class="form-input"
+                       type="email" id="input-email" name="email"
+                       data-testid="input-email"
+                       value="{{ form_data.email|default:'' }}"
+                       placeholder="harry@hogwarts.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="input-passport">Passport Number</label>
+                <input class="form-input"
+                       type="text" id="input-passport" name="passport_number"
+                       data-testid="input-passport"
+                       value="{{ form_data.passport_number|default:'' }}"
+                       placeholder="AB123456"
+                       maxlength="8" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="input-seat-class">Seat Class</label>
+                <select class="form-select" id="input-seat-class" name="seat_class"
+                        data-testid="input-seat-class">
+                    <option value="ECONOMY"  {% if form_data.seat_class == 'ECONOMY'  %}selected{% endif %}>Economy</option>
+                    <option value="BUSINESS" {% if form_data.seat_class == 'BUSINESS' %}selected{% endif %}>Business</option>
+                    <option value="FIRST"    {% if form_data.seat_class == 'FIRST'    %}selected{% endif %}>First Class</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <input class="btn-book" type="submit"
+                       id="btn-confirm-add-passenger"
+                       data-testid="btn-confirm-add-passenger"
+                       value="Add & Book →">
+                <button class="btn-cancel"
+                        id="btn-cancel-modal"
+                        data-testid="btn-cancel-modal"
+                        type="button"
+                        onclick="closeModal()">
+                    Cancel
+                </button>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 
 {% endblock %}
