@@ -2,12 +2,38 @@ import re
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
-from .models import Flight, Passenger
+from .models import Flight, Airport, Passenger
 
 
 def index(request):
     return render(request, "flights/index.html", {
         'flights': Flight.objects.all()
+    })
+
+
+def search(request):
+    airports = Airport.objects.all()
+    flights = None
+    query = {
+        'origin': request.GET.get('origin', '').strip(),
+        'destination': request.GET.get('destination', '').strip(),
+        'status': request.GET.get('status', '').strip(),
+    }
+
+    if 'origin' in request.GET or 'destination' in request.GET or 'status' in request.GET:
+        flights = Flight.objects.all()
+        if query['origin']:
+            flights = flights.filter(origin__id=query['origin'])
+        if query['destination']:
+            flights = flights.filter(destination__id=query['destination'])
+        if query['status']:
+            flights = flights.filter(status=query['status'])
+
+    return render(request, 'flights/search.html', {
+        'airports': airports,
+        'flights': flights,
+        'query': query,
+        'status_choices': Flight.STATUS_CHOICES,
     })
 
 
@@ -30,11 +56,11 @@ def book(request, flight_id):
     if not flight.is_bookable():
         error = "This flight is full." if flight.is_full() else f"Booking unavailable — status is {flight.status}."
 
-    first          = request.POST.get('first', '').strip()
-    last           = request.POST.get('last', '').strip()
-    email          = request.POST.get('email', '').strip().lower()
-    passport       = request.POST.get('passport_number', '').strip().upper()
-    seat_class     = request.POST.get('seat_class', 'ECONOMY')
+    first      = request.POST.get('first', '').strip()
+    last       = request.POST.get('last', '').strip()
+    email      = request.POST.get('email', '').strip().lower()
+    passport   = request.POST.get('passport_number', '').strip().upper()
+    seat_class = request.POST.get('seat_class', 'ECONOMY')
 
     if not error:
         if not all([first, last, email, passport]):
@@ -54,15 +80,13 @@ def book(request, flight_id):
             else:
                 existing.flights.add(flight)
                 return HttpResponseRedirect(reverse('flight', args=(flight.id,)))
-
         elif Passenger.objects.filter(passport_number=passport).exists():
             error = f"Passport number {passport} is already registered to another passenger."
 
     if not error:
         seat_number = flight.next_seat(seat_class)
         passenger = Passenger.objects.create(
-            first=first,
-            last=last,
+            first=first, last=last,
             email=email,
             passport_number=passport,
             seat_class=seat_class,
@@ -77,10 +101,8 @@ def book(request, flight_id):
         'error': error,
         'open_modal': True,
         'form_data': {
-            'first': first,
-            'last': last,
-            'email': email,
-            'passport_number': passport,
+            'first': first, 'last': last,
+            'email': email, 'passport_number': passport,
             'seat_class': seat_class,
         }
     })

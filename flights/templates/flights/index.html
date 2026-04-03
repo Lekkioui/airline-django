@@ -15,12 +15,24 @@
     .flight-item:nth-child(10) { animation-delay: 720ms; }
 </style>
 
-<h1 class="page-title" id="page-title-flights" data-testid="page-title-flights">Flights</h1>
+<h1 class="page-title" id="page-title-flights"
+    data-testid="page-title-flights">Flights</h1>
 <p class="page-subtitle">Live departure board — all routes</p>
+
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'search' %}"
+       class="btn-book"
+       id="btn-go-to-search"
+       data-testid="btn-go-to-search"
+       style="text-decoration: none; display: inline-block;">
+        Search Flights →
+    </a>
+</div>
 
 <ul class="flight-list" data-testid="flight-list" aria-label="All flights">
     {% for flight in flights %}
-    <li class="flight-item" data-testid="flight-item" data-flight-id="{{ flight.id }}">
+    <li class="flight-item" data-testid="flight-item"
+        data-flight-id="{{ flight.id }}">
         <a href="{% url 'flight' flight.id %}"
            class="flight-link"
            id="flight-link-{{ flight.id }}"

@@ -1,0 +1,111 @@
+{% extends "flights/layout.html" %}
+
+{% block body %}
+
+<a href="{% url 'index_flights' %}" class="back-link"
+   id="back-to-flights" data-testid="back-to-flights">All Flights</a>
+
+<h1 class="page-title" id="page-title-search"
+    data-testid="page-title-search">Search Flights</h1>
+<p class="page-subtitle">Filter flights by origin, destination or status</p>
+
+<form method="get" action="{% url 'search' %}"
+      id="search-form" data-testid="search-form">
+    <div class="detail-grid" style="margin-bottom: 24px;">
+        <div class="detail-cell">
+            <div class="detail-label">Origin</div>
+            <select class="form-select" name="origin"
+                    id="search-origin" data-testid="search-origin">
+                <option value="">All origins</option>
+                {% for airport in airports %}
+                <option value="{{ airport.id }}"
+                    {% if query.origin == airport.id|stringformat:"s" %}selected{% endif %}>
+                    {{ airport }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="detail-cell">
+            <div class="detail-label">Destination</div>
+            <select class="form-select" name="destination"
+                    id="search-destination" data-testid="search-destination">
+                <option value="">All destinations</option>
+                {% for airport in airports %}
+                <option value="{{ airport.id }}"
+                    {% if query.destination == airport.id|stringformat:"s" %}selected{% endif %}>
+                    {{ airport }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="detail-cell" style="grid-column: 1 / -1;">
+            <div class="detail-label">Status</div>
+            <select class="form-select" name="status"
+                    id="search-status" data-testid="search-status">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}"
+                    {% if query.status == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <input type="submit"
+               class="btn-book"
+               id="btn-search-submit"
+               data-testid="btn-search-submit"
+               value="Search →">
+        <a href="{% url 'search' %}"
+           class="btn-cancel"
+           id="btn-search-reset"
+           data-testid="btn-search-reset"
+           style="padding: 11px 24px; text-decoration: none;">
+            Reset
+        </a>
+    </div>
+</form>
+
+<p class="section-heading">Results</p>
+
+{% if flights is None %}
+<div class="empty-state" id="search-initial-state"
+     data-testid="search-initial-state">
+    Use the filters above to search for flights.
+</div>
+
+{% elif flights %}
+<ul class="flight-list" id="search-results"
+    data-testid="search-results" aria-label="Search results">
+    {% for flight in flights %}
+    <li class="flight-item" data-testid="search-result-item"
+        data-flight-id="{{ flight.id }}">
+        <a href="{% url 'flight' flight.id %}"
+           class="flight-link"
+           id="search-flight-link-{{ flight.id }}"
+           data-testid="search-flight-link"
+           data-test="flight-details-link"
+           aria-label="Flight {{ flight.id }}: {{ flight.origin }} to {{ flight.destination }}">
+            <span class="flight-num">FL{{ flight.id }}</span>
+            <span class="flight-route">
+                {{ flight.origin }}
+                <span class="arrow">──✈──</span>
+                {{ flight.destination }}
+            </span>
+            <span class="flight-arrow-icon"
+                  data-testid="search-result-status">{{ flight.status }} →</span>
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+
+{% else %}
+<div class="empty-state" id="search-no-results"
+     data-testid="search-no-results">
+    No flights found matching your criteria.
+</div>
+{% endif %}
+
+{% endblock %}
