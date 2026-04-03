@@ -41,10 +41,17 @@
 {% if passengers %}
 <ul class="passenger-list" id="passenger-list" data-testid="passenger-list">
     {% for passenger in passengers %}
-    <li class="passenger-item" data-testid="passenger-item" data-passenger-id="{{ passenger.id }}">
+    <li class="passenger-item" data-testid="passenger-item"
+        data-passenger-id="{{ passenger.id }}">
         <div style="display:flex; flex-direction:column; gap:2px; flex:1;">
-            <span class="passenger-name" data-testid="passenger-name">{{ passenger }}</span>
-            <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted); letter-spacing:0.08em;">
+            <a href="{% url 'passenger' passenger.id %}"
+            class="passenger-name"
+            data-testid="passenger-name"
+            style="color:var(--ink); text-decoration:none; font-weight:500;">
+                {{ passenger }}
+            </a>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem;
+                        color:var(--ink-muted); letter-spacing:0.08em;">
                 <span data-testid="passenger-seat">{{ passenger.seat_number }}</span>
                 · <span data-testid="passenger-class">{{ passenger.seat_class }}</span>
                 · <span data-testid="passenger-passport">{{ passenger.passport_number }}</span>

@@ -46,6 +46,23 @@ def flight(request, flight_id):
     })
 
 
+def passenger(request, passenger_id):
+    passenger = get_object_or_404(Passenger, id=passenger_id)
+    flights = passenger.flights.all()
+    return render(request, 'flights/passenger.html', {
+        'passenger': passenger,
+        'flights': flights,
+    })
+
+
+def remove_flight_from_passenger(request, passenger_id, flight_id):
+    if request.method == "POST":
+        passenger = get_object_or_404(Passenger, pk=passenger_id)
+        flight = get_object_or_404(Flight, pk=flight_id)
+        passenger.flights.remove(flight)
+        return HttpResponseRedirect(reverse('passenger', args=(passenger.id,)))
+
+
 def book(request, flight_id):
     if request.method != "POST":
         return HttpResponseRedirect(reverse('flight', args=(flight_id,)))

@@ -1,0 +1,97 @@
+{% extends "flights/layout.html" %}
+
+{% block body %}
+
+<a href="javascript:history.back()" class="back-link"
+   id="back-link" data-testid="back-link">Back</a>
+
+<span class="flight-badge" data-testid="passenger-badge">
+    PASSENGER {{ passenger.id }}
+</span>
+<h1 class="page-title" id="passenger-header"
+    data-testid="passenger-header">
+    {{ passenger.first }} {{ passenger.last }}
+</h1>
+<p class="page-subtitle">Passenger profile & flight history</p>
+
+<div class="detail-grid" data-testid="passenger-detail-grid">
+    <div class="detail-cell">
+        <div class="detail-label">First Name</div>
+        <div class="detail-value" id="detail-first"
+             data-testid="detail-first">{{ passenger.first }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Last Name</div>
+        <div class="detail-value" id="detail-last"
+             data-testid="detail-last">{{ passenger.last }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Email</div>
+        <div class="detail-value" id="detail-email"
+             data-testid="detail-email"
+             style="font-size:1rem; font-family:'IBM Plex Sans',sans-serif;">
+            {{ passenger.email }}
+        </div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Passport</div>
+        <div class="detail-value" id="detail-passport"
+             data-testid="detail-passport">{{ passenger.passport_number }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Seat Class</div>
+        <div class="detail-value" id="detail-seat-class"
+             data-testid="detail-seat-class">{{ passenger.seat_class }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Seat Number</div>
+        <div class="detail-value" id="detail-seat-number"
+             data-testid="detail-seat-number">{{ passenger.seat_number }}</div>
+    </div>
+</div>
+
+<p class="section-heading">Flights</p>
+
+{% if flights %}
+<ul class="flight-list" id="passenger-flights-list"
+    data-testid="passenger-flights-list">
+    {% for flight in flights %}
+    <li class="flight-item" data-testid="passenger-flight-item"
+        data-flight-id="{{ flight.id }}">
+        <a href="{% url 'flight' flight.id %}"
+           class="flight-link"
+           data-testid="passenger-flight-link">
+            <span class="flight-num">FL{{ flight.id }}</span>
+            <span class="flight-route">
+                {{ flight.origin }}
+                <span class="arrow">──✈──</span>
+                {{ flight.destination }}
+            </span>
+            <span class="flight-arrow-icon"
+                  data-testid="passenger-flight-status">
+                {{ flight.status }}
+            </span>
+        </a>
+        <form action="{% url 'remove_flight_from_passenger' passenger.id flight.id %}"
+              method="post" style="padding: 0 16px;">
+            {% csrf_token %}
+            <button type="submit"
+                    class="btn-remove"
+                    id="btn-remove-flight-{{ flight.id }}"
+                    data-testid="btn-remove-flight"
+                    data-flight-id="{{ flight.id }}"
+                    aria-label="Remove flight {{ flight.id }} from passenger">
+                Remove
+            </button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state" id="no-flights"
+     data-testid="no-flights">
+    This passenger has no flights booked.
+</div>
+{% endif %}
+
+{% endblock %}
