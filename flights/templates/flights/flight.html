@@ -2,20 +2,24 @@
 
 {% block body %}
 
-<a href="{% url 'index' %}" class="back-link" id="back-to-flights" data-testid="back-to-flights">All Flights</a>
+<a href="{% url 'index_flights' %}" class="back-link"
+   id="back-to-flights" data-testid="back-to-flights">All Flights</a>
 
 <span class="flight-badge" data-testid="flight-badge">FLIGHT {{ flight.id }}</span>
-<h1 class="page-title" id="flight-header" data-testid="flight-header">{{ flight.origin }} → {{ flight.destination }}</h1>
+<h1 class="page-title" id="flight-header"
+    data-testid="flight-header">{{ flight.origin }} → {{ flight.destination }}</h1>
 <p class="page-subtitle">Flight details & passenger manifest</p>
 
 <div class="detail-grid" data-testid="flight-detail-grid">
     <div class="detail-cell">
         <div class="detail-label">Origin</div>
-        <div class="detail-value" id="detail-origin" data-testid="detail-origin">{{ flight.origin }}</div>
+        <div class="detail-value" id="detail-origin"
+             data-testid="detail-origin">{{ flight.origin }}</div>
     </div>
     <div class="detail-cell">
         <div class="detail-label">Destination</div>
-        <div class="detail-value" id="detail-destination" data-testid="detail-destination">{{ flight.destination }}</div>
+        <div class="detail-value" id="detail-destination"
+             data-testid="detail-destination">{{ flight.destination }}</div>
     </div>
     <div class="detail-cell">
         <div class="detail-label">Duration</div>
@@ -25,16 +29,51 @@
     </div>
     <div class="detail-cell">
         <div class="detail-label">Status</div>
-        <div class="detail-value" id="detail-status" data-testid="detail-status" data-status="{{ flight.status }}">{{ flight.status }}</div>
+        <div class="detail-value" id="detail-status"
+             data-testid="detail-status"
+             data-status="{{ flight.status }}">{{ flight.status }}</div>
     </div>
     <div class="detail-cell" style="grid-column: 1 / -1;">
         <div class="detail-label">Capacity</div>
         <div class="detail-value" id="detail-capacity" data-testid="detail-capacity">
-            <span id="passenger-count" data-testid="passenger-count">{{ passengers.count }}</span>
+            <span id="passenger-count"
+                  data-testid="passenger-count">{{ passengers.count }}</span>
             <span style="font-size:1rem;font-family:'IBM Plex Sans',sans-serif;color:var(--ink-muted);font-weight:300;"> / {{ flight.capacity }} seats</span>
         </div>
     </div>
 </div>
+
+<p class="section-heading">Update Status</p>
+
+{% if status_error %}
+<div class="error-state" id="status-error"
+     data-testid="status-error" role="alert">{{ status_error }}</div>
+{% endif %}
+
+{% if next_statuses %}
+<form action="{% url 'update_status' flight.id %}" method="post"
+      id="status-form" data-testid="status-form">
+    {% csrf_token %}
+    <div class="booking-form">
+        <select class="form-select" name="status"
+                id="status-select" data-testid="status-select">
+            {% for status in next_statuses %}
+            <option value="{{ status }}" data-testid="status-option">{{ status }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit"
+               class="btn-book"
+               id="btn-update-status"
+               data-testid="btn-update-status"
+               value="Update →">
+    </div>
+</form>
+{% else %}
+<div class="empty-state" id="no-status-transition"
+     data-testid="no-status-transition">
+    No further status transitions available for this flight.
+</div>
+{% endif %}
 
 <p class="section-heading">Passengers</p>
 
@@ -45,13 +84,13 @@
         data-passenger-id="{{ passenger.id }}">
         <div style="display:flex; flex-direction:column; gap:2px; flex:1;">
             <a href="{% url 'passenger' passenger.id %}"
-            class="passenger-name"
-            data-testid="passenger-name"
-            style="color:var(--ink); text-decoration:none; font-weight:500;">
+               class="passenger-name"
+               data-testid="passenger-name"
+               style="color:var(--ink); text-decoration:none; font-weight:500;">
                 {{ passenger }}
             </a>
             <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem;
-                        color:var(--ink-muted); letter-spacing:0.08em;">
+                         color:var(--ink-muted); letter-spacing:0.08em;">
                 <span data-testid="passenger-seat">{{ passenger.seat_number }}</span>
                 · <span data-testid="passenger-class">{{ passenger.seat_class }}</span>
                 · <span data-testid="passenger-passport">{{ passenger.passport_number }}</span>
@@ -73,7 +112,8 @@
     {% endfor %}
 </ul>
 {% else %}
-<div class="empty-state" id="no-passengers" data-testid="no-passengers">No passengers on this flight yet.</div>
+<div class="empty-state" id="no-passengers"
+     data-testid="no-passengers">No passengers on this flight yet.</div>
 {% endif %}
 
 <p class="section-heading">Add Passenger</p>
@@ -103,7 +143,8 @@
         <div class="modal-title" id="modal-title">New Passenger</div>
 
         {% if error %}
-        <div class="error-state" id="booking-error" data-testid="booking-error" role="alert">{{ error }}</div>
+        <div class="error-state" id="booking-error"
+             data-testid="booking-error" role="alert">{{ error }}</div>
         {% endif %}
 
         <form action="{% url 'book' flight.id %}" method="post"
@@ -151,9 +192,18 @@
                 <label class="form-label" for="input-seat-class">Seat Class</label>
                 <select class="form-select" id="input-seat-class" name="seat_class"
                         data-testid="input-seat-class">
-                    <option value="ECONOMY"  {% if form_data.seat_class == 'ECONOMY'  %}selected{% endif %}>Economy</option>
-                    <option value="BUSINESS" {% if form_data.seat_class == 'BUSINESS' %}selected{% endif %}>Business</option>
-                    <option value="FIRST"    {% if form_data.seat_class == 'FIRST'    %}selected{% endif %}>First Class</option>
+                    <option value="ECONOMY"
+                        {% if form_data.seat_class == 'ECONOMY' %}selected{% endif %}>
+                        Economy
+                    </option>
+                    <option value="BUSINESS"
+                        {% if form_data.seat_class == 'BUSINESS' %}selected{% endif %}>
+                        Business
+                    </option>
+                    <option value="FIRST"
+                        {% if form_data.seat_class == 'FIRST' %}selected{% endif %}>
+                        First Class
+                    </option>
                 </select>
             </div>
 

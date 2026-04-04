@@ -4,6 +4,13 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from .models import Flight, Airport, Passenger
 
+VALID_TRANSITIONS = {
+    'SCHEDULED': ['BOARDING', 'CANCELLED'],
+    'BOARDING':  ['DEPARTED', 'CANCELLED'],
+    'DEPARTED':  [],
+    'CANCELLED': [],
+}
+
 
 def index(request):
     return render(request, "flights/index.html", {
@@ -40,9 +47,40 @@ def search(request):
 def flight(request, flight_id):
     flight = get_object_or_404(Flight, id=flight_id)
     passengers = flight.passengers.all()
+    next_statuses = VALID_TRANSITIONS.get(flight.status, [])
     return render(request, 'flights/flight.html', {
         'flight': flight,
         'passengers': passengers,
+        'next_statuses': next_statuses,
+    })
+
+
+def update_status(request, flight_id):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse('flight', args=(flight_id,)))
+
+    flight = get_object_or_404(Flight, pk=flight_id)
+    new_status = request.POST.get('status', '').strip()
+    error = None
+
+    allowed = VALID_TRANSITIONS.get(flight.status, [])
+
+    if not new_status:
+        error = "No status provided."
+    elif new_status not in allowed:
+        error = f"Cannot transition from {flight.status} to {new_status}."
+    else:
+        flight.status = new_status
+        flight.save()
+        return HttpResponseRedirect(reverse('flight', args=(flight.id,)))
+
+    passengers = flight.passengers.all()
+    next_statuses = VALID_TRANSITIONS.get(flight.status, [])
+    return render(request, 'flights/flight.html', {
+        'flight': flight,
+        'passengers': passengers,
+        'next_statuses': next_statuses,
+        'status_error': error,
     })
 
 
@@ -112,9 +150,11 @@ def book(request, flight_id):
         passenger.flights.add(flight)
         return HttpResponseRedirect(reverse('flight', args=(flight.id,)))
 
+    next_statuses = VALID_TRANSITIONS.get(flight.status, [])
     return render(request, 'flights/flight.html', {
         'flight': flight,
         'passengers': flight.passengers.all(),
+        'next_statuses': next_statuses,
         'error': error,
         'open_modal': True,
         'form_data': {
