@@ -1,0 +1,199 @@
+{% extends 'users/layout.html' %}
+{% block body %}
+
+<style>
+    .login-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: var(--text);
+    }
+
+    .login-sub {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 32px;
+    }
+
+    .message {
+        background: rgba(212,66,10,0.1);
+        border: 1px solid rgba(212,66,10,0.25);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.875rem;
+        color: #d4420a;
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .form-input {
+        width: 100%;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        color: var(--text);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+    }
+
+    .form-input::placeholder {
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+    }
+
+    .form-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(200,240,96,0.1);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background: var(--accent);
+        color: #0a0a0f;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.15s;
+        margin-top: 8px;
+    }
+
+    .btn-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 8px 0 16px;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+    .divider span {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .login-link a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+
+    .login-link a:hover { text-decoration: underline; }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+    }
+
+    .role-badge span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #22c55e;
+        display: inline-block;
+    }
+</style>
+
+<h2 class="login-title">Create account</h2>
+<p class="login-sub">Join AirLine to book your flights</p>
+
+<div class="role-badge">
+    <span></span>
+    Standard access — Flights, Search & Booking
+</div>
+
+{% if error %}
+<div class="message" data-testid="register-error">{{ error }}</div>
+{% endif %}
+
+<form action="{% url 'register' %}" method="post" data-testid="register-form">
+    {% csrf_token %}
+    <div class="form-group">
+        <input class="form-input"
+               type="text"
+               name="username"
+               placeholder="Username"
+               value="{{ form_data.username|default:'' }}"
+               data-testid="input-reg-username"
+               required>
+        <input class="form-input"
+               type="email"
+               name="email"
+               placeholder="Email address"
+               value="{{ form_data.email|default:'' }}"
+               data-testid="input-reg-email"
+               required>
+    </div>
+
+    <div class="divider"><span>Password</span></div>
+
+    <div class="form-group">
+        <input class="form-input"
+               type="password"
+               name="password"
+               placeholder="Password (min. 6 characters)"
+               data-testid="input-reg-password"
+               required>
+        <input class="form-input"
+               type="password"
+               name="password2"
+               placeholder="Confirm password"
+               data-testid="input-reg-password2"
+               required>
+    </div>
+
+    <input class="btn-submit"
+           type="submit"
+           value="Create Account →"
+           data-testid="btn-register">
+</form>
+
+<div class="login-link">
+    Already have an account?
+    <a href="{% url 'login' %}" data-testid="link-login">Sign in</a>
+</div>
+
+{% endblock %}

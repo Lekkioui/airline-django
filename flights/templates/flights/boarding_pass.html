@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boarding Pass — {{ booking.reference }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #f5f2eb; --bg2: #ede9df; --ink: #1a1814; --ink-muted: #7a7060;
+            --accent: #d4420a; --accent2: #1a4d8c; --border: #c8c0b0; --radius: 4px;
+        }
+
+        @media print {
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .page { box-shadow: none !important; margin: 0 !important; }
+        }
+
+        body {
+            background: #e5e5e5;
+            font-family: 'IBM Plex Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .print-bar {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .print-bar a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            color: #666;
+            text-decoration: none;
+            letter-spacing: 0.1em;
+        }
+        .print-bar a:hover { color: #333; }
+        .btn-print {
+            padding: 10px 24px;
+            background: var(--accent);
+            color: #fff;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 700px;
+            background: var(--bg);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .bp-header {
+            background: var(--ink);
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bp-brand {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 0.15em;
+            color: #fff;
+        }
+        .bp-brand span { color: var(--accent); }
+        .bp-header-right { text-align: right; }
+        .bp-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .bp-ref {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 0.1em;
+            color: #fff;
+        }
+
+        /* Runway stripe */
+        .runway {
+            height: 6px;
+            background: repeating-linear-gradient(
+                90deg, var(--accent) 0px, var(--accent) 30px,
+                transparent 30px, transparent 50px
+            );
+        }
+
+        /* Route section */
+        .bp-route {
+            padding: 28px 32px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        .bp-airport { text-align: center; }
+        .bp-code {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            letter-spacing: 0.05em;
+            color: var(--ink);
+            line-height: 1;
+        }
+        .bp-city {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--ink-muted);
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+        }
+        .bp-arrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1rem;
+            color: var(--ink-muted);
+            text-align: center;
+            flex: 1;
+        }
+        .bp-arrow div { font-size: 1.5rem; }
+
+        /* Info grid */
+        .bp-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .bp-info-cell {
+            background: var(--bg);
+            padding: 16px 20px;
+        }
+        .bp-info-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ink-muted);
+            margin-bottom: 6px;
+        }
+        .bp-info-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 0.05em;
+            color: var(--ink);
+            line-height: 1;
+        }
+        .bp-info-value.highlight { color: var(--accent2); }
+
+        /* Barcode section */
+        .bp-bottom {
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bp-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 2px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+        .bp-status.confirmed { background: #dcfce7; color: #166534; }
+        .bp-status.cancelled { background: #fee2e2; color: #991b1b; }
+
+        .bp-ref-large {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 0.12em;
+            color: var(--ink);
+            line-height: 1;
+        }
+        .bp-ref-sub {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--ink-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* Barcode simulation */
+        .barcode {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+            height: 60px;
+        }
+        .barcode-bar {
+            background: var(--ink);
+            width: 3px;
+            border-radius: 1px;
+        }
+
+        /* Footer */
+        .bp-footer {
+            background: var(--ink);
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bp-footer-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.6rem;
+            color: #555;
+            letter-spacing: 0.08em;
+        }
+        .bp-footer-text span { color: var(--accent); }
+
+        /* Tear line */
+        .tear-line {
+            border-top: 2px dashed var(--border);
+            margin: 0 32px;
+            position: relative;
+        }
+        .tear-line::before, .tear-line::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            width: 14px;
+            height: 14px;
+            background: #e5e5e5;
+            border-radius: 50%;
+        }
+        .tear-line::before { left: -45px; }
+        .tear-line::after { right: -45px; }
+    </style>
+</head>
+<body>
+
+<div class="print-bar no-print">
+    <a href="javascript:history.back()">← Back</a>
+    <button class="btn-print" onclick="window.print()">🖨 Print / Save as PDF</button>
+</div>
+
+<div class="page">
+
+    <!-- Header -->
+    <div class="bp-header">
+        <div class="bp-brand"><span>✈</span> AirLine</div>
+        <div class="bp-header-right">
+            <div class="bp-label">Boarding Pass</div>
+            <div class="bp-ref">{{ booking.reference }}</div>
+        </div>
+    </div>
+
+    <!-- Runway -->
+    <div class="runway"></div>
+
+    <!-- Route -->
+    <div class="bp-route">
+        <div class="bp-airport">
+            <div class="bp-code">{{ booking.flight.origin.code }}</div>
+            <div class="bp-city">{{ booking.flight.origin.city }}</div>
+        </div>
+        <div class="bp-arrow">
+            <div>──── ✈ ────</div>
+            <div style="font-size:0.65rem; margin-top:6px;">{{ booking.flight.duration }} min</div>
+        </div>
+        <div class="bp-airport" style="text-align:right;">
+            <div class="bp-code">{{ booking.flight.destination.code }}</div>
+            <div class="bp-city">{{ booking.flight.destination.city }}</div>
+        </div>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="bp-info">
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Passenger</div>
+            <div class="bp-info-value" style="font-size:1rem;">
+                {{ booking.passenger.first }}<br>{{ booking.passenger.last }}
+            </div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Date</div>
+            <div class="bp-info-value">
+                {% if booking.flight.departure_date %}
+                    {{ booking.flight.departure_date|date:"d M Y" }}
+                {% else %}TBD{% endif %}
+            </div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Flight</div>
+            <div class="bp-info-value">FL{{ booking.flight.id }}</div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Seat</div>
+            <div class="bp-info-value highlight">{{ booking.seat_number }}</div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Class</div>
+            <div class="bp-info-value">{{ booking.seat_class }}</div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Price Paid</div>
+            <div class="bp-info-value highlight">
+                {% if booking.price_paid %}${{ booking.price_paid }}{% else %}—{% endif %}
+            </div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Passport</div>
+            <div class="bp-info-value" style="font-size:1rem;">{{ booking.passenger.passport_number }}</div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Email</div>
+            <div class="bp-info-value" style="font-size:0.75rem; font-family:'IBM Plex Mono',monospace;">
+                {{ booking.passenger.email }}
+            </div>
+        </div>
+        <div class="bp-info-cell">
+            <div class="bp-info-label">Status</div>
+            <div class="bp-info-value">
+                <span class="bp-status {% if booking.status == 'CONFIRMED' %}confirmed{% else %}cancelled{% endif %}">
+                    {{ booking.status }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tear line -->
+    <div class="tear-line"></div>
+
+    <!-- Bottom section -->
+    <div class="bp-bottom">
+        <div>
+            <div class="bp-ref-large">{{ booking.reference }}</div>
+            <div class="bp-ref-sub">Booking Reference</div>
+        </div>
+
+        <!-- Barcode simulation -->
+        <div class="barcode" id="barcode"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="bp-footer">
+        <div class="bp-footer-text">
+            <span>AirLine</span> — This boarding pass is valid for one journey only
+        </div>
+        <div class="bp-footer-text">
+            Generated {{ booking.created_at|date:"d M Y H:i" }} UTC
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Generate barcode from reference
+    const ref = "{{ booking.reference }}";
+    const barcode = document.getElementById('barcode');
+    const seed = ref.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+
+    function seededRandom(seed, i) {
+        return ((seed * 9301 + 49297 * i) % 233280) / 233280;
+    }
+
+    for (let i = 0; i < 48; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'barcode-bar';
+        const h = 20 + Math.floor(seededRandom(seed, i) * 40);
+        const w = seededRandom(seed, i + 100) > 0.6 ? 5 : 3;
+        bar.style.height = h + 'px';
+        bar.style.width = w + 'px';
+        barcode.appendChild(bar);
+    }
+</script>
+
+</body>
+</html>

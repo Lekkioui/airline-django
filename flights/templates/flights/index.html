@@ -1,56 +1,312 @@
 {% extends "flights/layout.html" %}
 
 {% block body %}
-
 <style>
-    .flight-item:nth-child(1)  { animation-delay: 0ms; }
-    .flight-item:nth-child(2)  { animation-delay: 80ms; }
-    .flight-item:nth-child(3)  { animation-delay: 160ms; }
-    .flight-item:nth-child(4)  { animation-delay: 240ms; }
-    .flight-item:nth-child(5)  { animation-delay: 320ms; }
-    .flight-item:nth-child(6)  { animation-delay: 400ms; }
-    .flight-item:nth-child(7)  { animation-delay: 480ms; }
-    .flight-item:nth-child(8)  { animation-delay: 560ms; }
-    .flight-item:nth-child(9)  { animation-delay: 640ms; }
-    .flight-item:nth-child(10) { animation-delay: 720ms; }
+    .stats-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 32px; }
+    .stat-cell { background: var(--bg); padding: 16px 20px; }
+    .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-muted); margin-bottom: 6px; }
+    .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; line-height: 1; }
+    .stat-value.scheduled { color: var(--accent2); }
+    .stat-value.boarding  { color: #b45309; }
+    .stat-value.departed  { color: #374151; }
+    .stat-value.cancelled { color: var(--accent); }
+
+    .filter-bar { display: grid; grid-template-columns: 1fr 1fr 1fr 160px auto; gap: 8px; margin-bottom: 24px; align-items: end; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted); }
+
+    .flight-table { width: 100%; border-collapse: collapse; }
+    .flight-table thead tr { border-bottom: 2px solid var(--border); }
+    .flight-table th { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-muted); padding: 10px 12px; text-align: left; white-space: nowrap; }
+    .flight-table th a { color: var(--ink-muted); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+    .flight-table th a:hover { color: var(--ink); }
+    .flight-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; cursor: pointer; }
+    .flight-table tbody tr:hover { background: var(--bg2); }
+    .flight-table td { padding: 14px 12px; font-size: 0.875rem; vertical-align: middle; }
+
+    .td-flight { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--accent); font-weight: 500; }
+    .td-route { font-weight: 500; }
+    .td-route .code { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--ink-muted); }
+    .td-arrow { color: var(--ink-muted); margin: 0 6px; font-size: 0.7rem; }
+    .td-date { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--ink-muted); }
+    .td-duration { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--ink-muted); }
+
+    .status-badge { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; font-weight: 500; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 2px; }
+    .status-SCHEDULED { background: #dbeafe; color: #1e40af; }
+    .status-BOARDING  { background: #fef3c7; color: #92400e; }
+    .status-DEPARTED  { background: #f3f4f6; color: #374151; }
+    .status-CANCELLED { background: #fee2e2; color: #991b1b; }
+
+    .occupancy-bar { width: 80px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+    .occupancy-fill { height: 100%; border-radius: 3px; background: var(--accent2); transition: width 0.3s; }
+    .occupancy-fill.high { background: var(--accent); }
+    .td-capacity { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
+
+    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .pagination-info { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); }
+    .pagination-links { display: flex; gap: 4px; }
+    .page-link { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: var(--ink-muted); transition: all 0.15s; }
+    .page-link:hover { border-color: var(--accent2); color: var(--accent2); }
+    .page-link.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .page-link.disabled { opacity: 0.4; pointer-events: none; }
+
+    .sort-icon { font-size: 0.5rem; }
+    .btn-reset { padding: 10px 16px; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); cursor: pointer; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
+    .btn-reset:hover { border-color: var(--ink-muted); color: var(--ink); }
+    .results-count { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); margin-bottom: 12px; }
 </style>
 
-<h1 class="page-title" id="page-title-flights"
-    data-testid="page-title-flights">Flights</h1>
-<p class="page-subtitle">Live departure board — all routes</p>
+<h1 class="page-title" id="page-title-flights" data-testid="page-title-flights">Flights</h1>
+<p class="page-subtitle">Live departure board — {{ stats.total }} routes in system</p>
 
-<div style="margin-bottom: 20px;">
-    <a href="{% url 'search' %}"
-       class="btn-book"
-       id="btn-go-to-search"
-       data-testid="btn-go-to-search"
-       style="text-decoration: none; display: inline-block;">
-        Search Flights →
+<!-- Stats Bar -->
+<div class="stats-bar" data-testid="stats-bar">
+    <div class="stat-cell">
+        <div class="stat-label">Total</div>
+        <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-label">Scheduled</div>
+        <div class="stat-value scheduled">{{ stats.scheduled }}</div>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-label">Boarding</div>
+        <div class="stat-value boarding">{{ stats.boarding }}</div>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-label">Departed</div>
+        <div class="stat-value departed">{{ stats.departed }}</div>
+    </div>
+    <div class="stat-cell">
+        <div class="stat-label">Cancelled</div>
+        <div class="stat-value cancelled">{{ stats.cancelled }}</div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<!-- Quick Period Filters -->
+<div style="display:flex; gap:8px; margin-bottom:16px;">
+    <a href="{% url 'index_flights' %}"
+       class="{% if not query.date and not query.period %}btn-book{% else %}btn-reset{% endif %}"
+       style="text-decoration:none; padding:7px 16px; font-size:0.65rem;">
+        All Upcoming
+    </a>
+    <a href="?period=today"
+       class="{% if query.period == 'today' %}btn-book{% else %}btn-reset{% endif %}"
+       style="text-decoration:none; padding:7px 16px; font-size:0.65rem;"
+       data-testid="btn-period-today">
+        Today
+    </a>
+    <a href="?period=week"
+       class="{% if query.period == 'week' %}btn-book{% else %}btn-reset{% endif %}"
+       style="text-decoration:none; padding:7px 16px; font-size:0.65rem;"
+       data-testid="btn-period-week">
+        This Week
+    </a>
+    <a href="?period=month"
+       class="{% if query.period == 'month' %}btn-book{% else %}btn-reset{% endif %}"
+       style="text-decoration:none; padding:7px 16px; font-size:0.65rem;"
+       data-testid="btn-period-month">
+        This Month
     </a>
 </div>
 
-<ul class="flight-list" data-testid="flight-list" aria-label="All flights">
-    {% for flight in flights %}
-    <li class="flight-item" data-testid="flight-item"
-        data-flight-id="{{ flight.id }}">
-        <a href="{% url 'flight' flight.id %}"
-           class="flight-link"
-           id="flight-link-{{ flight.id }}"
-           data-testid="flight-link"
-           data-test="flight-details-link"
-           aria-label="Flight {{ flight.id }}: {{ flight.origin }} to {{ flight.destination }}">
-            <span class="flight-num">FL{{ flight.id }}</span>
-            <span class="flight-route">
-                {{ flight.origin }}
-                <span class="arrow">──✈──</span>
-                {{ flight.destination }}
-            </span>
-            <span class="flight-arrow-icon">
-                {% if flight.departure_date %}{{ flight.departure_date|date:"d M Y" }} · {% endif %}Details →
-            </span>
-        </a>
-    </li>
-    {% endfor %}
-</ul>
+<!-- Filter Bar -->
+<form method="get" action="{% url 'index_flights' %}" data-testid="index-filter-form">
+    <input type="hidden" name="sort"  value="{{ query.sort }}">
+    <input type="hidden" name="order" value="{{ query.order }}">
+    <div class="filter-bar">
+        <div class="filter-group">
+            <span class="filter-label">Origin</span>
+            <select class="form-select" name="origin" data-testid="filter-origin">
+                <option value="">All origins</option>
+                {% for airport in airports %}
+                <option value="{{ airport.id }}" {% if query.origin == airport.id|stringformat:"s" %}selected{% endif %}>
+                    {{ airport }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Destination</span>
+            <select class="form-select" name="destination" data-testid="filter-destination">
+                <option value="">All destinations</option>
+                {% for airport in airports %}
+                <option value="{{ airport.id }}" {% if query.destination == airport.id|stringformat:"s" %}selected{% endif %}>
+                    {{ airport }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Status</span>
+            <select class="form-select" name="status" data-testid="filter-status">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if query.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Date</span>
+            <input type="date" class="form-input" name="date"
+                   data-testid="filter-date"
+                   value="{{ query.date }}" style="padding: 10px 14px;">
+        </div>
+        <div class="filter-group" style="flex-direction: row; gap: 6px; align-items: flex-end;">
+            <a href="{% url 'index_flights' %}" class="btn-reset" data-testid="btn-filter-reset">Reset</a>
+        </div>
+    </div>
+</form>
 
+<!-- Results count -->
+<div class="results-count">
+    {% if query.date %}
+        Showing {{ page_obj.paginator.count }} flight{% if page_obj.paginator.count != 1 %}s{% endif %} for {{ query.date }}
+        · <a href="{% url 'index_flights' %}" style="color:var(--accent2); text-decoration:none;">Back to today</a>
+    {% else %}
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} upcoming flights
+    {% endif %}
+</div>
+
+<!-- Table -->
+<table class="flight-table" data-testid="flight-table">
+    <thead>
+        <tr>
+            <th>
+                <a href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort=id&order={% if query.sort == 'id' and query.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Flight {% if query.sort == 'id' %}<span class="sort-icon">{% if query.order == 'asc' %}▲{% else %}▼{% endif %}</span>{% endif %}
+                </a>
+            </th>
+            <th>Route</th>
+            <th>
+                <a href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort=departure_date&order={% if query.sort == 'departure_date' and query.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Date {% if query.sort == 'departure_date' %}<span class="sort-icon">{% if query.order == 'asc' %}▲{% else %}▼{% endif %}</span>{% endif %}
+                </a>
+            </th>
+            <th>Duration</th>
+            <th>
+                <a href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort=status&order={% if query.sort == 'status' and query.order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Status {% if query.sort == 'status' %}<span class="sort-icon">{% if query.order == 'asc' %}▲{% else %}▼{% endif %}</span>{% endif %}
+                </a>
+            </th>
+            <th>Occupancy</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for flight in page_obj %}
+        {% with pax=flight.passengers.count %}
+
+        {% if flight.departure_date == today and not showed_today_marker %}
+        <tr data-testid="today-marker">
+            <td colspan="7" style="padding: 6px 12px; background: #fff8e1; border-bottom: 2px solid #f59e0b;">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; font-weight:500;
+                             letter-spacing:0.12em; color:#92400e; text-transform:uppercase;">
+                    ● Today — {{ today|date:"d M Y" }}
+                </span>
+            </td>
+        </tr>
+        {% endif %}
+
+        <tr data-testid="flight-row" data-flight-id="{{ flight.id }}"
+            data-date="{{ flight.departure_date }}"
+            onclick="window.location='{% url 'flight' flight.id %}'">
+            <td class="td-flight" data-testid="flight-num">FL{{ flight.id }}</td>
+            <td class="td-route">
+                <span>{{ flight.origin.city }}</span>
+                <span class="td-arrow">──✈──</span>
+                <span>{{ flight.destination.city }}</span>
+                <br>
+                <span class="code">{{ flight.origin.code }} → {{ flight.destination.code }}</span>
+            </td>
+            <td class="td-date" data-testid="flight-date">
+                {% if flight.departure_date %}
+                    {% if flight.departure_date == today %}
+                        <span style="color:#92400e; font-weight:500;">Today</span>
+                    {% else %}
+                        {{ flight.departure_date|date:"d M Y" }}
+                    {% endif %}
+                {% else %}—{% endif %}
+            </td>
+            <td class="td-duration">{{ flight.duration }} min</td>
+            <td>
+                <span class="status-badge status-{{ flight.status }}" data-testid="flight-status">
+                    {{ flight.status }}
+                </span>
+            </td>
+            <td class="td-capacity">
+                {{ pax }}/{{ flight.capacity }}
+                <div class="occupancy-bar">
+                    {% widthratio pax flight.capacity 100 as pct %}
+                    <div class="occupancy-fill {% if pct > 80 %}high{% endif %}"
+                         style="width: {{ pct }}%"></div>
+                </div>
+            </td>
+            <td>
+                <a href="{% url 'flight' flight.id %}"
+                   class="back-link"
+                   data-testid="flight-details-link"
+                   data-test="flight-details-link"
+                   style="margin: 0;"
+                   onclick="event.stopPropagation()">
+                    Details →
+                </a>
+            </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr>
+            <td colspan="7" style="text-align: center; padding: 40px; font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--ink-muted);">
+                No flights found matching your criteria.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination -->
+<div class="pagination">
+    <div class="pagination-info" data-testid="pagination-info">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </div>
+    <div class="pagination-links">
+        {% if page_obj.has_previous %}
+        <a class="page-link" href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort={{ query.sort }}&order={{ query.order }}&page=1">« First</a>
+        <a class="page-link" data-testid="btn-page-prev" href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort={{ query.sort }}&order={{ query.order }}&page={{ page_obj.previous_page_number }}">‹ Prev</a>
+        {% else %}
+        <span class="page-link disabled">« First</span>
+        <span class="page-link disabled">‹ Prev</span>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+                <span class="page-link active">{{ num }}</span>
+            {% elif num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                <a class="page-link" href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort={{ query.sort }}&order={{ query.order }}&page={{ num }}">{{ num }}</a>
+            {% elif num == page_obj.number|add:"-3" or num == page_obj.number|add:"3" %}
+                <span class="page-link disabled" style="border:none;">···</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a class="page-link" data-testid="btn-page-next" href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort={{ query.sort }}&order={{ query.order }}&page={{ page_obj.next_page_number }}">Next ›</a>
+        <a class="page-link" href="?origin={{ query.origin }}&destination={{ query.destination }}&status={{ query.status }}&date={{ query.date }}&sort={{ query.sort }}&order={{ query.order }}&page={{ page_obj.paginator.num_pages }}">Last »</a>
+        {% else %}
+        <span class="page-link disabled">Next ›</span>
+        <span class="page-link disabled">Last »</span>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('[data-testid="filter-origin"], [data-testid="filter-destination"], [data-testid="filter-status"]').forEach(function(el) {
+        el.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    });
+    document.querySelector('[data-testid="filter-date"]').addEventListener('change', function() {
+        this.closest('form').submit();
+    });
+</script>
 {% endblock %}

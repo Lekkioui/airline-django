@@ -1,0 +1,84 @@
+{% extends "flights/layout.html" %}
+
+{% block body %}
+<h1 class="page-title" data-testid="page-title-booking-success">Booking Confirmed</h1>
+<p class="page-subtitle">Your reservation has been successfully created</p>
+
+<div style="text-align: center; padding: 32px 0 24px;">
+    <div style="font-size: 3rem; margin-bottom: 12px;">✅</div>
+    <div class="flight-badge" style="font-size: 1.1rem; padding: 8px 20px;"
+         data-testid="booking-reference">
+        {{ booking.reference }}
+    </div>
+    <p style="font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem;
+              color: var(--ink-muted); margin-top: 12px; letter-spacing: 0.1em;">
+        RESERVATION NUMBER
+    </p>
+</div>
+
+<div class="detail-grid" style="margin-bottom: 32px;">
+    <div class="detail-cell">
+        <div class="detail-label">Passenger</div>
+        <div class="detail-value" style="font-size: 1.1rem; padding-top: 4px;">
+            {{ booking.passenger.first }} {{ booking.passenger.last }}
+        </div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Flight</div>
+        <div class="detail-value">FL{{ booking.flight.id }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Route</div>
+        <div class="detail-value" style="font-size: 1rem; padding-top: 6px;">
+            {{ booking.flight.origin.code }} → {{ booking.flight.destination.code }}
+        </div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Seat</div>
+        <div class="detail-value">{{ booking.seat_number }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Class</div>
+        <div class="detail-value" style="font-size: 1rem; padding-top: 6px;">{{ booking.seat_class }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Status</div>
+        <div class="detail-value" style="font-size: 1rem; padding-top: 6px; color: var(--accent2);">
+            {{ booking.status }}
+        </div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Price Paid</div>
+        <div class="detail-value" style="color:var(--accent2);"
+            data-testid="success-price">
+            ${{ booking.price_paid }}
+        </div>
+    </div>
+</div>
+
+<p class="section-heading">Actions</p>
+
+<div style="display: flex; gap: 10px; flex-wrap:wrap;">
+    <a href="{% url 'flight' booking.flight.id %}"
+       class="btn-book" style="text-decoration: none;"
+       data-testid="btn-back-to-flight">
+        View Flight →
+    </a>
+    <a href="{% url 'boarding_pass_pdf' booking.reference %}"
+       class="btn-book"
+       style="text-decoration: none; display:inline-block; background:var(--accent2);"
+       data-testid="btn-download-boarding-pass"
+       target="_blank">
+        ↓ Download Boarding Pass
+    </a>
+    <form method="post" action="{% url 'booking_cancel' booking.reference %}"
+          data-testid="booking-cancel-form">
+        {% csrf_token %}
+        <button type="submit" class="btn-remove"
+                style="padding: 11px 24px; font-size: 0.75rem;"
+                data-testid="btn-cancel-booking">
+            Cancel Booking
+        </button>
+    </form>
+</div>
+{% endblock %}

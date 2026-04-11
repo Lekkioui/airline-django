@@ -1,6 +1,6 @@
 {% extends 'users/layout.html' %}
 {% block body %}
- 
+
 <style>
     .login-title {
         font-family: 'Syne', sans-serif;
@@ -9,13 +9,13 @@
         margin-bottom: 6px;
         color: var(--text);
     }
- 
+
     .login-sub {
         font-size: 0.875rem;
         color: var(--text-muted);
         margin-bottom: 32px;
     }
- 
+
     .message {
         background: var(--accent-dim);
         border: 1px solid rgba(200,240,96,0.25);
@@ -25,14 +25,20 @@
         color: var(--accent);
         margin-bottom: 24px;
     }
- 
+
+    .message.error {
+        background: rgba(212,66,10,0.1);
+        border: 1px solid rgba(212,66,10,0.25);
+        color: #d4420a;
+    }
+
     .form-group {
         display: flex;
         flex-direction: column;
         gap: 12px;
         margin-bottom: 20px;
     }
- 
+
     .form-input {
         width: 100%;
         background: rgba(255,255,255,0.04);
@@ -45,19 +51,19 @@
         transition: border-color 0.2s, box-shadow 0.2s;
         outline: none;
     }
- 
+
     .form-input::placeholder {
         color: var(--text-muted);
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.08em;
     }
- 
+
     .form-input:focus {
         border-color: var(--accent);
         box-shadow: 0 0 0 3px rgba(200,240,96,0.1);
     }
- 
+
     .btn-submit {
         width: 100%;
         padding: 14px;
@@ -74,31 +80,53 @@
         transition: opacity 0.2s, transform 0.15s;
         margin-top: 8px;
     }
- 
-    .btn-submit:hover {
-        opacity: 0.88;
-        transform: translateY(-1px);
+
+    .btn-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+
+    .register-link {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--text-muted);
     }
- 
-    .btn-submit:active {
-        transform: translateY(0);
+
+    .register-link a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 4px;
     }
+
+    .register-link a:hover { text-decoration: underline; }
 </style>
- 
+
 <h2 class="login-title">Welcome back</h2>
 <p class="login-sub">Sign in to your account</p>
- 
+
 {% if message %}
-<div class="message">{{ message }}</div>
+<div class="message {% if message == 'Invalid credentials' %}error{% endif %}">
+    {{ message }}
+</div>
 {% endif %}
- 
+
 <form action="{% url 'login' %}" method="post">
     {% csrf_token %}
     <div class="form-group">
-        <input class="form-input" type="text" name="username" placeholder="Username">
-        <input class="form-input" type="password" name="password" placeholder="Password">
+        <input class="form-input" type="text" name="username"
+               placeholder="Username" data-testid="input-username">
+        <input class="form-input" type="password" name="password"
+               placeholder="Password" data-testid="input-password">
     </div>
-    <input class="btn-submit" type="submit" value="Sign In →">
+    <input class="btn-submit" type="submit" value="Sign In →"
+           data-testid="btn-signin">
 </form>
- 
+
+<div class="register-link">
+    Don't have an account?
+    <a href="{% url 'register' %}" data-testid="link-register">Create one</a>
+</div>
+
 {% endblock %}

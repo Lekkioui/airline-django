@@ -1,0 +1,101 @@
+{% extends "flights/layout.html" %}
+
+{% block body %}
+<a href="{% url 'seat_map' flight.id %}" class="back-link" data-testid="back-to-seat-map">Change Class</a>
+
+<h1 class="page-title" data-testid="page-title-booking-confirm">Confirm Booking</h1>
+<p class="page-subtitle">FL{{ flight.id }} — {{ flight.origin }} → {{ flight.destination }} · {{ seat_class_display }}</p>
+
+{% if error %}
+<div class="error-state" data-testid="booking-confirm-error">{{ error }}</div>
+{% endif %}
+
+<div class="detail-grid" style="margin-bottom: 32px;">
+    <div class="detail-cell">
+        <div class="detail-label">Flight</div>
+        <div class="detail-value">FL{{ flight.id }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Route</div>
+        <div class="detail-value" style="font-size: 1rem; padding-top: 6px;">{{ flight.origin.code }} → {{ flight.destination.code }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Date</div>
+        <div class="detail-value" style="font-size: 1rem; padding-top: 6px;">
+            {% if flight.departure_date %}{{ flight.departure_date|date:"d M Y" }}{% else %}TBD{% endif %}
+        </div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Class</div>
+        <div class="detail-value" style="font-size: 1rem; padding-top: 6px;">{{ seat_class_display }}</div>
+    </div>
+    <div class="detail-cell">
+        <div class="detail-label">Price</div>
+        <div class="detail-value" style="color:var(--accent2); font-size:1.8rem;"
+            data-testid="confirm-price">
+            ${{ price }}
+        </div>
+    </div>
+</div>
+
+<p class="section-heading">Passenger Details</p>
+
+<form method="post" action="{% url 'booking_confirm' flight.id %}" data-testid="booking-confirm-form">
+    {% csrf_token %}
+    <input type="hidden" name="seat_class" value="{{ seat_class }}">
+    <input type="hidden" name="selected_seat" value="{{ selected_seat }}">
+    <input type="hidden" name="price" value="{{ price }}">    
+
+    <div class="detail-cell">
+        <div class="detail-label">Selected Seat</div>
+        <div class="detail-value">{{ selected_seat }}</div>
+    </div>
+
+    <div class="detail-grid" style="margin-bottom: 24px;">
+        <div class="detail-cell">
+            <div class="form-group">
+                <label class="form-label" for="input-first">First Name</label>
+                <input class="form-input" type="text" id="input-first" name="first"
+                       data-testid="input-confirm-first"
+                       value="{{ form_data.first|default:'' }}" required>
+            </div>
+        </div>
+        <div class="detail-cell">
+            <div class="form-group">
+                <label class="form-label" for="input-last">Last Name</label>
+                <input class="form-input" type="text" id="input-last" name="last"
+                       data-testid="input-confirm-last"
+                       value="{{ form_data.last|default:'' }}" required>
+            </div>
+        </div>
+        <div class="detail-cell">
+            <div class="form-group">
+                <label class="form-label" for="input-email">Email</label>
+                <input class="form-input" type="email" id="input-email" name="email"
+                       data-testid="input-confirm-email"
+                       value="{{ form_data.email|default:'' }}" required>
+            </div>
+        </div>
+        <div class="detail-cell">
+            <div class="form-group">
+                <label class="form-label" for="input-passport">Passport Number</label>
+                <input class="form-input" type="text" id="input-passport" name="passport_number"
+                       data-testid="input-confirm-passport"
+                       placeholder="AB123456"
+                       value="{{ form_data.passport_number|default:'' }}" required>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn-book" data-testid="btn-confirm-booking">
+            Confirm Booking →
+        </button>
+        <a href="{% url 'flight' flight.id %}" class="btn-cancel"
+           style="padding: 11px 24px; text-decoration: none;"
+           data-testid="btn-cancel-booking">
+            Cancel
+        </a>
+    </div>
+</form>
+{% endblock %}

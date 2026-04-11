@@ -1,0 +1,326 @@
+{% extends "flights/layout.html" %}
+
+{% block body %}
+<style>
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+    .kpi-cell { background: var(--bg); padding: 20px 24px; }
+    .kpi-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-muted); margin-bottom: 8px; }
+    .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 0.05em; line-height: 1; color: var(--ink); }
+    .kpi-value.accent  { color: var(--accent); }
+    .kpi-value.accent2 { color: var(--accent2); }
+    .kpi-value.green   { color: #16a34a; }
+    .kpi-sub { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--ink-muted); margin-top: 4px; }
+
+    .today-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 32px; }
+    .today-cell { background: #fff8e1; padding: 14px 20px; }
+    .today-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: #92400e; margin-bottom: 4px; }
+    .today-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: #92400e; line-height: 1; }
+
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .chart-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+    .chart-title { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-muted); margin-bottom: 20px; }
+
+    .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 140px; padding-bottom: 20px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; height: 100%; }
+    .bar { width: 100%; border-radius: 2px 2px 0 0; background: var(--accent2); transition: height 0.3s; min-height: 2px; }
+    .bar.today-bar-item { background: var(--accent); }
+    .bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.5rem; color: var(--ink-muted); text-align: center; transform: rotate(-45deg); white-space: nowrap; }
+
+    .donut-container { display: flex; align-items: center; gap: 24px; }
+    .donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .legend-row { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--ink-muted); }
+    .legend-val { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: var(--ink); margin-left: auto; }
+
+    .table-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 16px; }
+    .dash-table { width: 100%; border-collapse: collapse; }
+    .dash-table th { font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    .dash-table td { padding: 10px 12px; font-size: 0.85rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .dash-table tr:last-child td { border-bottom: none; }
+    .dash-table tr:hover td { background: var(--bg2); }
+
+    .occ-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+    .occ-fill { height: 100%; border-radius: 3px; background: var(--accent2); }
+    .occ-fill.high { background: var(--accent); }
+
+    .alert-badge { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 0.6rem; padding: 2px 8px; border-radius: 2px; font-weight: 500; }
+    .alert-high { background: #fee2e2; color: #991b1b; }
+    .alert-med  { background: #fef3c7; color: #92400e; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+</style>
+
+<h1 class="page-title" data-testid="page-title-dashboard">Dashboard</h1>
+<p class="page-subtitle">Operations overview — {{ today|date:"d M Y" }}</p>
+
+<!-- KPIs -->
+<div class="kpi-grid" style="grid-template-columns: repeat(5, 1fr);" data-testid="kpi-grid">
+    <div class="kpi-cell">
+        <div class="kpi-label">Total Flights</div>
+        <div class="kpi-value" data-testid="kpi-total-flights">{{ total_flights }}</div>
+        <div class="kpi-sub">in system</div>
+    </div>
+    <div class="kpi-cell">
+        <div class="kpi-label">Total Passengers</div>
+        <div class="kpi-value accent2" data-testid="kpi-total-passengers">{{ total_passengers }}</div>
+        <div class="kpi-sub">{{ total_bookings }} bookings</div>
+    </div>
+    <div class="kpi-cell">
+        <div class="kpi-label">Avg Occupancy</div>
+        <div class="kpi-value green" data-testid="kpi-avg-occupancy">{{ avg_occupancy }}%</div>
+        <div class="kpi-sub">across active flights</div>
+    </div>
+    <div class="kpi-cell">
+        <div class="kpi-label">Cancellation Rate</div>
+        <div class="kpi-value accent" data-testid="kpi-cancellation-rate">
+            {% if total_flights > 0 %}
+                {% widthratio cancelled_count total_flights 100 %}%
+            {% else %}0%{% endif %}
+        </div>
+        <div class="kpi-sub">{{ cancelled_count }} cancelled</div>
+    </div>
+    <div class="kpi-cell">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value green" data-testid="kpi-total-revenue">
+            ${{ total_revenue|floatformat:0 }}
+        </div>
+        <div class="kpi-sub">confirmed bookings</div>
+    </div>
+</div>
+
+<!-- Today Bar -->
+<div class="section-heading">Today — {{ today|date:"d M Y" }}</div>
+<div class="today-bar" data-testid="today-bar">
+    <div class="today-cell">
+        <div class="today-label">Total</div>
+        <div class="today-value" data-testid="today-total">{{ today_total }}</div>
+    </div>
+    <div class="today-cell">
+        <div class="today-label">Scheduled</div>
+        <div class="today-value" data-testid="today-scheduled">{{ today_scheduled }}</div>
+    </div>
+    <div class="today-cell">
+        <div class="today-label">Boarding</div>
+        <div class="today-value" data-testid="today-boarding">{{ today_boarding }}</div>
+    </div>
+    <div class="today-cell">
+        <div class="today-label">Departed</div>
+        <div class="today-value" data-testid="today-departed">{{ today_departed }}</div>
+    </div>
+    <div class="today-cell">
+        <div class="today-label">Cancelled</div>
+        <div class="today-value" data-testid="today-cancelled">{{ today_cancelled }}</div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="charts-grid">
+
+    <!-- Occupation par jour -->
+    <div class="chart-card">
+        <div class="chart-title">Daily Occupancy Rate — Next 14 Days</div>
+        <div class="bar-chart" data-testid="chart-daily-occupancy">
+            {% for day in daily_data %}
+            <div class="bar-col">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:0.55rem; color:var(--ink-muted);">
+                    {% if day.occupancy > 0 %}{{ day.occupancy }}%{% endif %}
+                </span>
+                <div style="flex:1; display:flex; align-items:flex-end; width:100%;">
+                    <div class="bar {% if forloop.first %}today-bar-item{% endif %}"
+                        style="height: {% if day.occupancy > 0 %}{{ day.occupancy }}{% else %}{{ day.flights_pct }}{% endif %}%;
+                                min-height: 4px; width:100%;
+                                {% if day.occupancy == 0 %}opacity:0.3;{% endif %}"
+                        title="{{ day.date }}: {{ day.flights }} flights · {{ day.passengers }} pax · {{ day.occupancy }}% occupancy">
+                    </div>
+                </div>
+                <span class="bar-label">{{ day.date }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Répartition par classe -->
+    <div class="chart-card">
+        <div class="chart-title">Passenger Class Distribution</div>
+        {% with total_pax=economy_pax|add:business_pax|add:first_pax %}
+        <div data-testid="chart-class-distribution" style="display:flex; flex-direction:column; gap:20px; padding-top:8px;">
+
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:12px; height:12px; border-radius:2px; background:#1a4d8c;"></div>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.1em;">Economy</span>
+                    </div>
+                    <div style="display:flex; align-items:baseline; gap:8px;">
+                        <span style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--ink);">{{ economy_pax }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted);">
+                            {% if total_pax > 0 %}{% widthratio economy_pax total_pax 100 %}%{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div style="height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; border-radius:4px; background:#1a4d8c; width:{% if total_pax > 0 %}{% widthratio economy_pax total_pax 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:12px; height:12px; border-radius:2px; background:#b45309;"></div>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.1em;">Business</span>
+                    </div>
+                    <div style="display:flex; align-items:baseline; gap:8px;">
+                        <span style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--ink);">{{ business_pax }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted);">
+                            {% if total_pax > 0 %}{% widthratio business_pax total_pax 100 %}%{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div style="height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; border-radius:4px; background:#b45309; width:{% if total_pax > 0 %}{% widthratio business_pax total_pax 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:12px; height:12px; border-radius:2px; background:#d4420a;"></div>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.1em;">First Class</span>
+                    </div>
+                    <div style="display:flex; align-items:baseline; gap:8px;">
+                        <span style="font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--ink);">{{ first_pax }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted);">
+                            {% if total_pax > 0 %}{% widthratio first_pax total_pax 100 %}%{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div style="height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; border-radius:4px; background:#d4420a; width:{% if total_pax > 0 %}{% widthratio first_pax total_pax 100 %}{% else %}0{% endif %}%;"></div>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--border); padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.1em;">Total</span>
+                <span style="font-family:'Bebas Neue',sans-serif; font-size:1.8rem; color:var(--ink);">{{ total_pax }}</span>
+            </div>
+
+        </div>
+        {% endwith %}
+    </div>
+</div>
+
+<!-- Two columns -->
+<div class="two-col">
+
+    <!-- Top Routes -->
+    <div class="table-card">
+        <div class="chart-title">Top Routes by Passengers</div>
+        <table class="dash-table" data-testid="table-top-routes">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Route</th>
+                    <th>Passengers</th>
+                    <th>Occupancy</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in top_routes %}
+                <tr>
+                    <td style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-muted);">
+                        {{ forloop.counter }}
+                    </td>
+                    <td>
+                        <span style="font-weight:500;">{{ f.origin.code }}</span>
+                        <span style="color:var(--ink-muted); margin:0 4px;">→</span>
+                        <span style="font-weight:500;">{{ f.destination.code }}</span>
+                        <br>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted);">
+                            {{ f.origin.city }} → {{ f.destination.city }}
+                        </span>
+                    </td>
+                    <td style="font-family:'IBM Plex Mono',monospace; font-size:0.8rem;">
+                        {{ f.pax_count }}
+                    </td>
+                    <td>
+                        {% widthratio f.pax_count f.capacity 100 as route_occ %}
+                        <span style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem;">
+                            {{ route_occ }}%
+                        </span>
+                        <div class="occ-bar">
+                            <div class="occ-fill {% if route_occ > 80 %}high{% endif %}"
+                                 style="width:{{ route_occ }}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Vols presque pleins -->
+    <div class="table-card">
+        <div class="chart-title">⚠ Flights Near Capacity</div>
+        {% if almost_full %}
+        <table class="dash-table" data-testid="table-almost-full">
+            <thead>
+                <tr>
+                    <th>Flight</th>
+                    <th>Route</th>
+                    <th>Date</th>
+                    <th>Fill Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in almost_full %}
+                <tr style="cursor:pointer;" onclick="window.location='{% url 'flight' item.flight.id %}'">
+                    <td style="font-family:'IBM Plex Mono',monospace; font-size:0.75rem; color:var(--accent);">
+                        FL{{ item.flight.id }}
+                    </td>
+                    <td>
+                        {{ item.flight.origin.code }} → {{ item.flight.destination.code }}
+                    </td>
+                    <td style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-muted);">
+                        {{ item.flight.departure_date|date:"d M" }}
+                    </td>
+                    <td>
+                        <span class="alert-badge {% if item.rate >= 90 %}alert-high{% else %}alert-med{% endif %}">
+                            {{ item.rate }}%
+                        </span>
+                        <div class="occ-bar" style="margin-top:6px;">
+                            <div class="occ-fill high" style="width:{{ item.rate }}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">No flights near capacity.</div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Top Airports -->
+<div class="table-card">
+    <div class="chart-title">Top Airports by Departures</div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;" data-testid="top-airports">
+        {% for airport in top_origins %}
+        <div style="flex:1; min-width:120px; background:var(--bg2); border:1px solid var(--border);
+                    border-radius:var(--radius); padding:16px; text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif; font-size:1.8rem; color:var(--accent2);">
+                {{ airport.code }}
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--ink-muted);
+                        margin-bottom:4px;">{{ airport.city }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink);">
+                {{ airport.dep_count }} flights
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

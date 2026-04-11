@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path("", views.index, name="index_flights"),
     path("search/", views.search, name="search"),
+    path("dashboard/", views.dashboard, name="dashboard"),
     path("<int:flight_id>", views.flight, name="flight"),
     path("<int:flight_id>/book", views.book, name="book"),
     path("<int:flight_id>/remove/<int:passenger_id>", views.remove, name="remove"),
@@ -11,4 +12,9 @@ urlpatterns = [
     path("passenger/<int:passenger_id>", views.passenger, name="passenger"),
     path("passenger/<int:passenger_id>/remove/<int:flight_id>",
          views.remove_flight_from_passenger, name="remove_flight_from_passenger"),
+    path("<int:flight_id>/seat-map", views.seat_map, name="seat_map"),
+    path("<int:flight_id>/booking-confirm", views.booking_confirm, name="booking_confirm"),
+    path("booking/<str:reference>/success", views.booking_success, name="booking_success"),
+    path("booking/<str:reference>/cancel", views.booking_cancel, name="booking_cancel"),
+    path("booking/<str:reference>/boarding-pass", views.boarding_pass_pdf, name="boarding_pass_pdf"),
 ]

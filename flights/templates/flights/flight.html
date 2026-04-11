@@ -116,6 +116,17 @@
      data-testid="no-passengers">No passengers on this flight yet.</div>
 {% endif %}
 
+<p class="section-heading">Book a Seat</p>
+
+{% if flight.is_bookable %}
+<a href="{% url 'seat_map' flight.id %}"
+   class="btn-add-passenger"
+   data-testid="btn-book-seat"
+   style="text-decoration: none; display: inline-block; margin-bottom: 12px;">
+    ✈ Book a Seat →
+</a>
+{% endif %}
+
 <p class="section-heading">Add Passenger</p>
 
 {% if flight.is_bookable %}

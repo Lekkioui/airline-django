@@ -46,7 +46,7 @@
         }
 
         .runway { height: 6px; background: repeating-linear-gradient(90deg, var(--accent) 0px, var(--accent) 30px, transparent 30px, transparent 50px); opacity: 0.7; }
-        .main { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; animation: fadeIn 0.4s ease both; }
+        .main { max-width: 1200px; margin: 0 auto; padding: 48px 32px 80px; animation: fadeIn 0.4s ease both; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 6vw, 4rem); letter-spacing: 0.08em; color: var(--ink); line-height: 1; margin-bottom: 4px; }
         .page-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--ink-muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
@@ -102,15 +102,53 @@
 </head>
 <body data-testid="app-root">
     <nav class="topbar" data-testid="topbar" role="navigation" aria-label="Main navigation">
-        <span class="topbar-brand" data-testid="topbar-brand">AirLine</span>
+        <div style="display:flex; align-items:center; gap:32px;">
+            <span class="topbar-brand" data-testid="topbar-brand">AirLine</span>
+            {% if user.is_authenticated %}
+            <div style="display:flex; align-items:center; gap:4px;">
+                <a href="{% url 'index_flights' %}"
+                style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:#aaa;
+                        text-decoration:none; padding:6px 12px; border-radius:var(--radius);
+                        letter-spacing:0.08em; text-transform:uppercase; transition:color 0.2s;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">
+                    Flights
+                </a>
+                <a href="{% url 'search' %}"
+                style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:#aaa;
+                        text-decoration:none; padding:6px 12px; border-radius:var(--radius);
+                        letter-spacing:0.08em; text-transform:uppercase; transition:color 0.2s;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">
+                    Search
+                </a>
+                {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'dashboard' %}"
+                style="font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:#aaa;
+                        text-decoration:none; padding:6px 12px; border-radius:var(--radius);
+                        letter-spacing:0.08em; text-transform:uppercase; transition:color 0.2s;"
+                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">
+                    Dashboard
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
         <div class="topbar-right">
             <span class="topbar-time" id="clock" data-testid="topbar-clock" aria-live="polite"></span>
             {% if user.is_authenticated %}
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:#666; letter-spacing:0.08em;">
+                {{ user.username }}
+            </span>
             <a href="{% url 'logout' %}"
-               class="btn-logout"
-               data-testid="btn-logout"
-               aria-label="Logout">
+            class="btn-logout"
+            data-testid="btn-logout"
+            aria-label="Logout">
                 Logout
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}"
+            class="btn-logout"
+            data-testid="btn-login">
+                Login
             </a>
             {% endif %}
         </div>
