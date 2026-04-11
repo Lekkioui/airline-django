@@ -45,7 +45,9 @@
                 <span class="arrow">──✈──</span>
                 {{ flight.destination }}
             </span>
-            <span class="flight-arrow-icon">Details →</span>
+            <span class="flight-arrow-icon">
+                {% if flight.departure_date %}{{ flight.departure_date|date:"d M Y" }} · {% endif %}Details →
+            </span>
         </a>
     </li>
     {% endfor %}

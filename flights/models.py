@@ -23,6 +23,7 @@ class Flight(models.Model):
     duration = models.IntegerField()
     capacity = models.IntegerField(default=50)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SCHEDULED')
+    departure_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.id} : {self.origin} to {self.destination}"

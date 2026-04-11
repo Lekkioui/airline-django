@@ -171,3 +171,31 @@ def remove(request, flight_id, passenger_id):
         passenger = get_object_or_404(Passenger, pk=passenger_id)
         passenger.flights.remove(flight)
         return HttpResponseRedirect(reverse('flight', args=(flight.id,)))
+    
+def search(request):
+    airports = Airport.objects.all()
+    flights = None
+    query = {
+        'origin': request.GET.get('origin', '').strip(),
+        'destination': request.GET.get('destination', '').strip(),
+        'status': request.GET.get('status', '').strip(),
+        'date': request.GET.get('date', '').strip(),
+    }
+
+    if request.GET:
+        flights = Flight.objects.all()
+        if query['origin']:
+            flights = flights.filter(origin__id=query['origin'])
+        if query['destination']:
+            flights = flights.filter(destination__id=query['destination'])
+        if query['status']:
+            flights = flights.filter(status=query['status'])
+        if query['date']:
+            flights = flights.filter(departure_date=query['date'])
+
+    return render(request, 'flights/search.html', {
+        'airports': airports,
+        'flights': flights,
+        'query': query,
+        'status_choices': Flight.STATUS_CHOICES,
+    })

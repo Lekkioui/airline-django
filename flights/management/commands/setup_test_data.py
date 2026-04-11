@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from flights.models import Airport, Flight, Passenger
+from datetime import date
 
 
 class Command(BaseCommand):
@@ -12,7 +13,6 @@ class Command(BaseCommand):
 
         User.objects.create_superuser('anasse', 'anasse@gmail.com', 'anasse')
 
-        # Aéroports
         jfk = Airport.objects.create(code='JFK', city='New York City')
         lhr = Airport.objects.create(code='LHR', city='London')
         cdg = Airport.objects.create(code='CDG', city='Paris')
@@ -22,30 +22,29 @@ class Command(BaseCommand):
         sin = Airport.objects.create(code='SIN', city='Singapore')
         ist = Airport.objects.create(code='IST', city='Istanbul')
 
-        # Vols
         flights_data = [
-            (jfk, lhr, 415, 'SCHEDULED', 50),
-            (cdg, dxb, 360, 'SCHEDULED', 40),
-            (lhr, hnd, 680, 'BOARDING',  30),
-            (lax, jfk, 310, 'SCHEDULED', 60),
-            (dxb, sin, 270, 'DEPARTED',  45),
-            (hnd, lax, 540, 'SCHEDULED', 35),
-            (ist, cdg, 195, 'CANCELLED', 50),
-            (sin, lhr, 750, 'SCHEDULED', 40),
+            (jfk, lhr, 415, 'SCHEDULED', 50, date(2026, 4, 20)),
+            (cdg, dxb, 360, 'SCHEDULED', 40, date(2026, 4, 21)),
+            (lhr, hnd, 680, 'BOARDING',  30, date(2026, 4, 22)),
+            (lax, jfk, 310, 'SCHEDULED', 60, date(2026, 4, 23)),
+            (dxb, sin, 270, 'DEPARTED',  45, date(2026, 4, 15)),
+            (hnd, lax, 540, 'SCHEDULED', 35, date(2026, 4, 24)),
+            (ist, cdg, 195, 'CANCELLED', 50, date(2026, 4, 18)),
+            (sin, lhr, 750, 'SCHEDULED', 40, date(2026, 4, 25)),
         ]
 
         flights = []
-        for origin, dest, duration, status, capacity in flights_data:
+        for origin, dest, duration, status, capacity, dep_date in flights_data:
             f = Flight.objects.create(
                 origin=origin,
                 destination=dest,
                 duration=duration,
                 status=status,
                 capacity=capacity,
+                departure_date=dep_date,
             )
             flights.append(f)
 
-        # Passengers uniquement sur le premier vol (pour les tests)
         flight = flights[0]
         passengers_data = [
             ('Harry',     'Potter',     'harry@hogwarts.com',     'HP123456', 'ECONOMY'),

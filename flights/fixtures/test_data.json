@@ -10,58 +10,88 @@
     "fields": { "code": "LHR", "city": "London" }
   },
   {
+    "model": "flights.airport",
+    "pk": 3,
+    "fields": { "code": "CDG", "city": "Paris" }
+  },
+  {
+    "model": "flights.airport",
+    "pk": 4,
+    "fields": { "code": "DXB", "city": "Dubai" }
+  },
+  {
+    "model": "flights.airport",
+    "pk": 5,
+    "fields": { "code": "CMN", "city": "Casablanca" }
+  },
+  {
     "model": "flights.flight",
     "pk": 1,
-    "fields": { "origin": 1, "destination": 2, "duration": 415 }
+    "fields": { "origin": 1, "destination": 2, "duration": 415, "capacity": 50, "status": "SCHEDULED", "departure_date": "2026-04-20" }
+  },
+  {
+    "model": "flights.flight",
+    "pk": 2,
+    "fields": { "origin": 2, "destination": 3, "duration": 80, "capacity": 30, "status": "BOARDING", "departure_date": "2026-04-21" }
+  },
+  {
+    "model": "flights.flight",
+    "pk": 3,
+    "fields": { "origin": 3, "destination": 4, "duration": 390, "capacity": 40, "status": "SCHEDULED", "departure_date": "2026-04-22" }
+  },
+  {
+    "model": "flights.flight",
+    "pk": 4,
+    "fields": { "origin": 4, "destination": 5, "duration": 450, "capacity": 60, "status": "DEPARTED", "departure_date": "2026-04-15" }
   },
   {
     "model": "flights.passenger",
     "pk": 1,
-    "fields": { "first": "Harry", "last": "Potter", "flights": [] }
+    "fields": { "first": "Harry", "last": "Potter", "email": "harry@hogwarts.com", "passport_number": "HP123456", "seat_class": "ECONOMY", "seat_number": "E1", "flights": [1] }
   },
   {
     "model": "flights.passenger",
     "pk": 2,
-    "fields": { "first": "Hermione", "last": "Granger", "flights": [] }
+    "fields": { "first": "Hermione", "last": "Granger", "email": "hermione@hogwarts.com", "passport_number": "HG123456", "seat_class": "BUSINESS", "seat_number": "B1", "flights": [1] }
   },
   {
     "model": "flights.passenger",
     "pk": 3,
-    "fields": { "first": "Ron", "last": "Weasley", "flights": [] }
+    "fields": { "first": "Ron", "last": "Weasley", "email": "ron@hogwarts.com", "passport_number": "RW123456", "seat_class": "ECONOMY", "seat_number": "E2", "flights": [1] }
   },
   {
     "model": "flights.passenger",
     "pk": 4,
-    "fields": { "first": "Albus", "last": "Dumbledore", "flights": [] }
+    "fields": { "first": "Albus", "last": "Dumbledore", "email": "albus@hogwarts.com", "passport_number": "AD123456", "seat_class": "FIRST", "seat_number": "F1", "flights": [2] }
   },
   {
     "model": "flights.passenger",
     "pk": 5,
-    "fields": { "first": "Severus", "last": "Snape", "flights": [] }
+    "fields": { "first": "Severus", "last": "Snape", "email": "severus@hogwarts.com", "passport_number": "SS123456", "seat_class": "BUSINESS", "seat_number": "B1", "flights": [2] }
   },
   {
     "model": "flights.passenger",
     "pk": 6,
-    "fields": { "first": "Draco", "last": "Malfoy", "flights": [] }
+    "fields": { "first": "Draco", "last": "Malfoy", "email": "draco@hogwarts.com", "passport_number": "DM123456", "seat_class": "FIRST", "seat_number": "F1", "flights": [3] }
   },
   {
     "model": "flights.passenger",
     "pk": 7,
-    "fields": { "first": "Luna", "last": "Lovegood", "flights": [] }
+    "fields": { "first": "Luna", "last": "Lovegood", "email": "luna@hogwarts.com", "passport_number": "LL123456", "seat_class": "ECONOMY", "seat_number": "E1", "flights": [3] }
   },
   {
     "model": "flights.passenger",
     "pk": 8,
-    "fields": { "first": "Neville", "last": "Longbottom", "flights": [] }
+    "fields": { "first": "Neville", "last": "Longbottom", "email": "neville@hogwarts.com", "passport_number": "NL123456", "seat_class": "ECONOMY", "seat_number": "E2", "flights": [4] }
   },
   {
     "model": "flights.passenger",
     "pk": 9,
-    "fields": { "first": "Ginny", "last": "Weasley", "flights": [] }
+    "fields": { "first": "Ginny", "last": "Weasley", "email": "ginny@hogwarts.com", "passport_number": "GW123456", "seat_class": "BUSINESS", "seat_number": "B1", "flights": [4] }
   },
   {
     "model": "flights.passenger",
     "pk": 10,
-    "fields": { "first": "Sirius", "last": "Black", "flights": [] }
+    "fields": { "first": "Sirius", "last": "Black", "email": "sirius@hogwarts.com", "passport_number": "SB123456", "seat_class": "FIRST", "seat_number": "F1", "flights": [1] }
   }
 ]

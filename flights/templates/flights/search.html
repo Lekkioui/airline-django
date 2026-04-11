@@ -38,7 +38,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="detail-cell" style="grid-column: 1 / -1;">
+        <div class="detail-cell">
             <div class="detail-label">Status</div>
             <select class="form-select" name="status"
                     id="search-status" data-testid="search-status">
@@ -50,6 +50,15 @@
                 </option>
                 {% endfor %}
             </select>
+        </div>
+        <div class="detail-cell">
+            <div class="detail-label">Departure Date</div>
+            <input type="date"
+                class="form-input"
+                name="date"
+                id="search-date"
+                data-testid="search-date"
+                value="{{ query.date }}">
         </div>
     </div>
     <div style="display: flex; gap: 10px;">
