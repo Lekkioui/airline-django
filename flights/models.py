@@ -166,7 +166,12 @@ class Booking(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.reference:
-            self.reference = 'BK-' + uuid.uuid4().hex[:6].upper()
+            import uuid
+            while True:
+                ref = 'BK-' + uuid.uuid4().hex[:6].upper()
+                if not Booking.objects.filter(reference=ref).exists():
+                    self.reference = ref
+                    break
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -199,3 +199,104 @@ class Command(BaseCommand):
             f'Done! {total_flights} flights, {total_pax} passengers, '
             f'{Booking.objects.count()} bookings created.'
         ))
+
+        # Vols dédiés aux tests avec statuts garantis
+        self.stdout.write('Creating dedicated test flights...')
+
+        jfk = airports['JFK']
+        lhr = airports['LHR']
+        cdg = airports['CDG']
+        ist = airports['IST']
+
+        # Vol SCHEDULED avec passagers — pour test_add_passenger, test_status
+        test_flight_scheduled = Flight.objects.create(
+            origin=jfk, destination=lhr,
+            duration=415, status='SCHEDULED',
+            capacity=50, departure_date=today + timedelta(days=1),
+        )
+
+        # Passagers fixes avec données connues pour les tests
+        test_passengers = [
+            ('Harry',    'Potter',   'harry@hogwarts.com',    'HP123456', 'ECONOMY'),
+            ('Hermione', 'Granger',  'hermione@hogwarts.com', 'HG123456', 'BUSINESS'),
+            ('Ron',      'Weasley',  'ron@hogwarts.com',      'RW123456', 'ECONOMY'),
+            ('Albus',    'Dumbledore','albus@hogwarts.com',   'AD123456', 'FIRST'),
+            ('Severus',  'Snape',    'severus@hogwarts.com',  'SS123456', 'BUSINESS'),
+        ]
+
+        test_passenger_obj = None
+        for first, last, email, passport, seat_class in test_passengers:
+            # Vérifier que l'email n'est pas déjà utilisé
+            if email in used_emails or passport in used_passports:
+                continue
+            used_emails.add(email)
+            used_passports.add(passport)
+
+            seat_number = test_flight_scheduled.next_seat(seat_class)
+            p = Passenger.objects.create(
+                first=first, last=last, email=email,
+                passport_number=passport, seat_class=seat_class,
+                seat_number=seat_number,
+            )
+            p.flights.add(test_flight_scheduled)
+            price = test_flight_scheduled.get_price(seat_class)
+            Booking.objects.create(
+                passenger=p, flight=test_flight_scheduled,
+                seat_class=seat_class, seat_number=seat_number,
+                price_paid=price,
+            )
+            if test_passenger_obj is None:
+                test_passenger_obj = p
+
+        # Vol BOARDING
+        test_flight_boarding = Flight.objects.create(
+            origin=cdg, destination=lhr,
+            duration=90, status='BOARDING',
+            capacity=40, departure_date=today,
+        )
+
+        # Vol DEPARTED
+        test_flight_departed = Flight.objects.create(
+            origin=lhr, destination=cdg,
+            duration=90, status='DEPARTED',
+            capacity=40, departure_date=today - timedelta(days=1),
+        )
+
+        # Vol CANCELLED
+        test_flight_cancelled = Flight.objects.create(
+            origin=ist, destination=cdg,
+            duration=210, status='CANCELLED',
+            capacity=50, departure_date=today + timedelta(days=2),
+        )
+
+        # Écrire les IDs dans un fichier pour Robot Framework
+        import os
+        rf_vars_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..', '..', '..', '..', 'airline-automation',
+            'resources', 'test_flight_ids.resource'
+        )
+        rf_vars_path = os.path.normpath(rf_vars_path)
+
+        with open(rf_vars_path, 'w') as f:
+            f.write("*** Variables ***\n")
+            f.write(f"${{TEST_FLIGHT_SCHEDULED_ID}}      {test_flight_scheduled.id}\n")
+            f.write(f"${{TEST_FLIGHT_BOARDING_ID}}       {test_flight_boarding.id}\n")
+            f.write(f"${{TEST_FLIGHT_DEPARTED_ID}}       {test_flight_departed.id}\n")
+            f.write(f"${{TEST_FLIGHT_CANCELLED_ID}}      {test_flight_cancelled.id}\n")
+            f.write(f"${{TEST_FLIGHT_SCHEDULED_URL}}     ${{BASE_URL}}/flights/{test_flight_scheduled.id}\n")
+            f.write(f"${{TEST_FLIGHT_BOARDING_URL}}      ${{BASE_URL}}/flights/{test_flight_boarding.id}\n")
+            f.write(f"${{TEST_FLIGHT_DEPARTED_URL}}      ${{BASE_URL}}/flights/{test_flight_departed.id}\n")
+            f.write(f"${{TEST_FLIGHT_CANCELLED_URL}}     ${{BASE_URL}}/flights/{test_flight_cancelled.id}\n")
+            f.write(f"${{TEST_PASSENGER_ID}}             {test_passenger_obj.id if test_passenger_obj else ''}\n")
+            f.write(f"${{TEST_PASSENGER_EMAIL}}          harry@hogwarts.com\n")
+            f.write(f"${{TEST_PASSENGER_FIRST}}          Harry\n")
+            f.write(f"${{TEST_PASSENGER_LAST}}           Potter\n")
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Test flights: SCHEDULED={test_flight_scheduled.id}, '
+            f'BOARDING={test_flight_boarding.id}, '
+            f'DEPARTED={test_flight_departed.id}, '
+            f'CANCELLED={test_flight_cancelled.id}'
+        ))
+        self.stdout.write(self.style.SUCCESS(f'RF variables written to: {rf_vars_path}'))

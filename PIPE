@@ -3,8 +3,16 @@ System check identified some issues:
 WARNINGS:
 flights.Airport: (models.W042) Auto-created primary key used when not defining a primary key type, by default 'django.db.models.AutoField'.
 	HINT: Configure the DEFAULT_AUTO_FIELD setting or the FlightsConfig.default_auto_field attribute to point to a subclass of AutoField, e.g. 'django.db.models.BigAutoField'.
+flights.Booking: (models.W042) Auto-created primary key used when not defining a primary key type, by default 'django.db.models.AutoField'.
+	HINT: Configure the DEFAULT_AUTO_FIELD setting or the FlightsConfig.default_auto_field attribute to point to a subclass of AutoField, e.g. 'django.db.models.BigAutoField'.
 flights.Flight: (models.W042) Auto-created primary key used when not defining a primary key type, by default 'django.db.models.AutoField'.
 	HINT: Configure the DEFAULT_AUTO_FIELD setting or the FlightsConfig.default_auto_field attribute to point to a subclass of AutoField, e.g. 'django.db.models.BigAutoField'.
 flights.Passenger: (models.W042) Auto-created primary key used when not defining a primary key type, by default 'django.db.models.AutoField'.
 	HINT: Configure the DEFAULT_AUTO_FIELD setting or the FlightsConfig.default_auto_field attribute to point to a subclass of AutoField, e.g. 'django.db.models.BigAutoField'.
-Test data created: 8 flights, 15 passengers
+Clearing existing data...
+Generating flights...
+Adding passengers...
+Done! 948 flights, 1043 passengers, 1043 bookings created.
+Creating dedicated test flights...
+Test flights: SCHEDULED=1179217, BOARDING=1179218, DEPARTED=1179219, CANCELLED=1179220
+RF variables written to: C:\Users\pc\Desktop\AirLine-Projet\airline-automation\resources\test_flight_ids.resource
